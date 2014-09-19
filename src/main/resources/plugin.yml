@@ -1,3 +1,19 @@
 name: PvPLogger
 main: com.stefensharkey.pvplogger.PvPLogger
 version: ${project.version}
+author: Stefenatefun
+
+commands:
+  pvplogger:
+    description: See PvPLogger help page.
+    aliases: [pvpl]
+    permission: pvplogger.help
+
+permissions:
+  pvplogger.*:
+    description: Gives access to all PvPLogger permissions.
+    children:
+      pvplogger.help: true
+  pvplogger.help:
+    description: See PvPLogger help page.
+    default: op
