@@ -35,20 +35,36 @@ public final class PvPLoggerListener implements Listener
     {
         if(event.getEntity() instanceof Player)
         {
-            if(!event.getEventName().equals("EntityDamageByEntityEvent"))
+            if(event.getEntity().getType() != EntityType.SPLASH_POTION
+                    && event.getCause() != EntityDamageEvent.DamageCause.MAGIC)
             {
-                plugin.getLogger().severe("Unlogged event! Contact the mod author! Posting details:");
-                plugin.getLogger().severe("onEntityDamageEvent()");
-                plugin.getLogger().severe("Event Type: " + event.getEventName());
-                plugin.getLogger().severe("Entity: " + ((Player) event.getEntity()).getName());
-                plugin.getLogger().severe("Cause: " + event.getCause());
-                return;
+                if(!event.getEventName().equals("EntityDamageByEntityEvent"))
+                {
+//                    plugin.getLogger().info("");
+//                    plugin.getLogger().info("onEntityDamageEvent()");
+//                    plugin.getLogger().info("Event Type: " + event.getEventName());
+//                    plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+                    logToFile(event, event.getEntity(), formatMessage(event));
+                    return;
+                }
+
+                logToFile(event, event.getEntity(), formatMessage(event));
+            }
+            else if(event.getCause() == EntityDamageEvent.DamageCause.MAGIC)
+            {
+//                plugin.getLogger().info("");
+//                plugin.getLogger().info("onEntityDamageEvent()");
+//                plugin.getLogger().info("Event Type: " + event.getEventName());
+//                plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+                logToFile(event, event.getEntity(), formatMessage(event));
             }
 
-            plugin.getLogger().info("onEntityDamageEvent()");
-            plugin.getLogger().info("Event Type: " + event.getEventName());
-            plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
-            logToFile(event, event.getEntity(), formatMessage(event));
+//            plugin.getLogger().info("");
+//            plugin.getLogger().info("Unlogged event! Contact the mod author! Posting details:");
+//            plugin.getLogger().info("onEntityDamageEvent()");
+//            plugin.getLogger().info("Event Type: " + event.getEventName());
+//            plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+//            plugin.getLogger().info("Cause: " + event.getCause());
         }
     }
 
@@ -56,15 +72,9 @@ public final class PvPLoggerListener implements Listener
     @SuppressWarnings("unused")
     public void onEntityDamageByEntityEvent(final EntityDamageByEntityEvent event)
     {
-        if(event.getDamager() instanceof Player || event.getDamager().getType() == EntityType.SPLASH_POTION)
-        {
-            plugin.getLogger().info("onEntityDamageByEntityEvent()");
-            plugin.getLogger().info("Event Type: " + event.getEventName());
-            plugin.getLogger().info("Damager: " +  event.getDamager());
-            plugin.getLogger().info("Entity: " + event.getEntity());
+        if(event.getDamager() instanceof Player)
             logToFile(event, event.getEntity(), formatMessage(event));
-        }
-    }
+}
 
     public String entityInfo(Block block)
     {
@@ -159,8 +169,8 @@ public final class PvPLoggerListener implements Listener
 
                 if(damager instanceof Player)
                 {
-                    plugin.getLogger().info(((Player) damager).getName());
-                    saveTo = new File(plugin.getDataFolder(), (damager).getUniqueId().toString() + ".log");
+                    plugin.getLogger().info(damager.toString());
+                    saveTo = new File(plugin.getDataFolder(), damager.getUniqueId().toString() + ".log");
 
                     fileWriter = new FileWriter(saveTo, true);
                     printWriter = new PrintWriter(fileWriter);
