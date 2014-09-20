@@ -1,13 +1,15 @@
 package com.stefensharkey.pvplogger;
 
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -28,52 +30,88 @@ public final class PvPLoggerListener implements Listener
 
     @EventHandler(priority = EventPriority.LOWEST)
     @SuppressWarnings("unused")
+    public void onEntityDamageEvent(final EntityDamageEvent event)
+    {
+        if(event.getEntity() instanceof Player)
+            logToFile(event, event.getEntity(), formatMessage(event));
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    @SuppressWarnings("unused")
     public void onEntityDamageByEntityEvent(final EntityDamageByEntityEvent event)
     {
-        logToFile(event.getDamager(), event.getEntity(), formatMessage(event));
+        if(event.getDamager() instanceof Player)
+            logToFile(event, event.getEntity(), formatMessage(event));
+    }
+
+    public String entityInfo(Block entity)
+    {
+        return entity
+                + " {Coordinates:{X=" + entity.getLocation().getBlockX()
+                + ", Y=" + entity.getLocation().getBlockY()
+                + ", Z=" + entity.getLocation().getBlockZ()
+                + "}, Orientation:{Yaw=" + entity.getLocation().getYaw()
+                + ", Pitch=" + entity.getLocation().getPitch()
+                + "}, World=" + entity.getLocation().getWorld().getName() + "}";
     }
 
     public String entityInfo(Entity entity)
     {
-        return formatName(entity)
-                + " {Coordinates={X=" + entity.getLocation().getBlockX()
-                + " Y=" + entity.getLocation().getBlockY()
-                + " Z=" + entity.getLocation().getBlockZ()
-                + "}, Orientation={Yaw=" + entity.getLocation().getYaw()
-                + " Pitch=" + entity.getLocation().getPitch()
+        return Utils.getName(entity)
+                + " {Coordinates:{X=" + entity.getLocation().getX()
+                + ", Y=" + entity.getLocation().getY()
+                + ", Z=" + entity.getLocation().getZ()
+                + "}, Orientation:{Yaw=" + entity.getLocation().getYaw()
+                + ", Pitch=" + entity.getLocation().getPitch()
+                + ", Direction=" + Utils.getDirection(entity)
                 + "}, World=" + entity.getLocation().getWorld().getName() + "}";
     }
 
-    public String formatMessage(EntityDamageByEntityEvent event)
+    public String formatMessage(Event event)
     {
         Calendar cal = Calendar.getInstance();
-        cal.getTime();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        return "[" + sdf.format(cal.getTime()) + "]: " + formatName(event.getDamager()) + " (UUID: "
-                + event.getDamager().getUniqueId() + ") attacked " + formatName(event.getEntity()) + " (UUID: "
-                + event.getEntity().getUniqueId() + ") with " + formatWeapon(event.getDamager()) + " for "
-                + event.getDamage() + " damage."
-                + "\n" + entityInfo(event.getDamager()) + "\n" + entityInfo(event.getEntity())
-                + "\n";
+
+        if(event instanceof EntityDamageByBlockEvent)
+        {
+            Block attacker = ((EntityDamageByBlockEvent) event).getDamager();
+            Entity damaged = ((EntityDamageByBlockEvent) event).getEntity();
+
+            return "[" + sdf.format(cal.getTime()) + "]: " + attacker + " attacked " + Utils.getName(damaged)
+                    + " (UUID: " + damaged.getUniqueId() + ") for "+ ((EntityDamageByBlockEvent) event).getDamage()
+                    + " damage."
+                    + "\n" + entityInfo(attacker)
+                    + "\n" + entityInfo(damaged)
+                    + "\n";
+        }
+        else if(event instanceof EntityDamageByEntityEvent)
+        {
+            Entity attacker = ((EntityDamageByEntityEvent) event).getDamager();
+            Entity damaged = ((EntityDamageByEntityEvent) event).getEntity();
+
+            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(attacker) + " (UUID: "
+                    + attacker.getUniqueId() + ") attacked " + Utils.getName(damaged) + " (UUID: "
+                    + damaged.getUniqueId() + ") with " + Utils.getWeapon(attacker) + " for "
+                    + ((EntityDamageByEntityEvent) event).getDamage() + " damage."
+                    + "\n" + entityInfo(attacker)
+                    + "\n" + entityInfo(damaged)
+                    + "\n";
+        }
+        else if(event instanceof EntityDamageEvent)
+        {
+            Entity damaged = ((EntityDamageEvent) event).getEntity();
+
+            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(damaged) + " (UUID: "
+                    + damaged.getUniqueId() + ") was damaged by " + ((EntityDamageEvent) event).getCause() + " for "
+                    + ((EntityDamageEvent) event).getDamage() + " damage."
+                    + "\n" + entityInfo(damaged)
+                    + "\n";
+        }
+
+        return "";
     }
 
-    public String formatName(Entity entity)
-    {
-        if(entity instanceof Projectile)
-            return ((Projectile) entity).getShooter().toString();
-        if(entity instanceof Player)
-            return ((Player) entity).getName();
-        return entity.toString();
-    }
-
-    public String formatWeapon(Entity entity)
-    {
-        if(entity instanceof LivingEntity)
-            return ((LivingEntity) entity).getEquipment().getItemInHand().toString();
-        return entity.toString();
-    }
-
-    public void logToFile(Entity attacker, Entity damaged, String message)
+    public void logToFile(EntityDamageEvent event, Entity damaged, String message)
     {
         File saveTo;
         FileWriter fileWriter;
@@ -84,15 +122,20 @@ public final class PvPLoggerListener implements Listener
 
         try
         {
-            if(attacker instanceof Player)
+            if(event instanceof EntityDamageByEntityEvent)
             {
-                saveTo = new File(plugin.getDataFolder(), (attacker).getUniqueId().toString() + ".log");
+                Entity attacker = ((EntityDamageByEntityEvent) event).getDamager();
 
-                fileWriter = new FileWriter(saveTo, true);
-                printWriter = new PrintWriter(fileWriter);
-                printWriter.println(message);
-                printWriter.flush();
-                printWriter.close();
+                if(attacker instanceof Player)
+                {
+                    saveTo = new File(plugin.getDataFolder(), (attacker).getUniqueId().toString() + ".log");
+
+                    fileWriter = new FileWriter(saveTo, true);
+                    printWriter = new PrintWriter(fileWriter);
+                    printWriter.println(message);
+                    printWriter.flush();
+                    printWriter.close();
+                }
             }
 
             if(damaged instanceof Player)
