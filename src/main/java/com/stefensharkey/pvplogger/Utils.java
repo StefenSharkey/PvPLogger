@@ -1,21 +1,24 @@
 package com.stefensharkey.pvplogger;
 
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 
 public class Utils
 {
     public static String getDirection(Entity entity)
     {
         int degrees = (Math.round(entity.getLocation().getYaw()) + 270) % 360;
-        if (degrees <= 22)return "NORTH";
-        if (degrees <= 67) return "NORTH_EAST";
-        if (degrees <= 112) return "EAST";
-        if (degrees <= 157) return "SOUTH_EAST";
-        if (degrees <= 202) return "SOUTH";
-        if (degrees <= 247) return "SOUTH_WEST";
-        if (degrees <= 292) return "WEST";
-        if (degrees <= 337) return "NORTH_WEST";
-        if (degrees <= 359) return "NORTH";
+        if(degrees <= 22) return "NORTH";
+        if(degrees <= 67) return "NORTH_EAST";
+        if(degrees <= 112) return "EAST";
+        if(degrees <= 157) return "SOUTH_EAST";
+        if(degrees <= 202) return "SOUTH";
+        if(degrees <= 247) return "SOUTH_WEST";
+        if(degrees <= 292) return "WEST";
+        if(degrees <= 337) return "NORTH_WEST";
+        if(degrees <= 359) return "NORTH";
         return "UNKNOWN";
     }
 

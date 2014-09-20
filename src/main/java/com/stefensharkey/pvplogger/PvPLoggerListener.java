@@ -21,7 +21,7 @@ import java.util.Calendar;
 
 public final class PvPLoggerListener implements Listener
 {
-    private Plugin plugin;
+    private final Plugin plugin;
 
     public PvPLoggerListener(Plugin plugin)
     {
@@ -85,14 +85,13 @@ public final class PvPLoggerListener implements Listener
             Entity entity = ((EntityDamageByBlockEvent) event).getEntity();
             boolean isLava = ((EntityDamageByBlockEvent) event).getCause().equals(EntityDamageEvent.DamageCause.LAVA);
 
-            return  "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager) + " damaged " + Utils.getName(entity)
-                    + " (UUID: " + entity.getUniqueId() + ") for "+ ((EntityDamageByBlockEvent) event).getDamage()
+            return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager) + " damaged " + Utils.getName(entity)
+                    + " (UUID: " + entity.getUniqueId() + ") for " + ((EntityDamageByBlockEvent) event).getDamage()
                     + " damage."
                     + "\n" + (isLava ? lavaInfo(entity) : entityInfo(damager))
                     + "\n" + entityInfo(entity)
                     + "\n";
-        }
-        else if(event instanceof EntityDamageByEntityEvent)
+        } else if(event instanceof EntityDamageByEntityEvent)
         {
             Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
             Entity entity = ((EntityDamageByEntityEvent) event).getEntity();
@@ -104,8 +103,7 @@ public final class PvPLoggerListener implements Listener
                     + "\n" + entityInfo(damager)
                     + "\n" + entityInfo(entity)
                     + "\n";
-        }
-        else if(event instanceof EntityDamageEvent)
+        } else if(event instanceof EntityDamageEvent)
         {
             Entity entity = ((EntityDamageEvent) event).getEntity();
 
@@ -156,8 +154,7 @@ public final class PvPLoggerListener implements Listener
                 printWriter.flush();
                 printWriter.close();
             }
-        }
-        catch(IOException e)
+        } catch(IOException e)
         {
             e.printStackTrace();
         }
