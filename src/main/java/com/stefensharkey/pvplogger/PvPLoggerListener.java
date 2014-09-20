@@ -40,10 +40,15 @@ public final class PvPLoggerListener implements Listener
             {
                 if(!event.getEventName().equals("EntityDamageByEntityEvent"))
                 {
-//                    plugin.getLogger().info("");
-//                    plugin.getLogger().info("onEntityDamageEvent()");
-//                    plugin.getLogger().info("Event Type: " + event.getEventName());
-//                    plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+                    if(PvPLogger.DEBUG_MODE)
+                    {
+                        plugin.getLogger().info("");
+                        plugin.getLogger().info("onEntityDamageEvent()");
+                        plugin.getLogger().info("Event Type: " + event.getEventName());
+                        plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+                        plugin.getLogger().info("Cause: " + event.getCause());
+                    }
+
                     logToFile(event, event.getEntity(), formatMessage(event));
                     return;
                 }
@@ -52,19 +57,27 @@ public final class PvPLoggerListener implements Listener
             }
             else if(event.getCause() == EntityDamageEvent.DamageCause.MAGIC)
             {
-//                plugin.getLogger().info("");
-//                plugin.getLogger().info("onEntityDamageEvent()");
-//                plugin.getLogger().info("Event Type: " + event.getEventName());
-//                plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+                if(PvPLogger.DEBUG_MODE)
+                {
+                    plugin.getLogger().info("");
+                    plugin.getLogger().info("onEntityDamageEvent()");
+                    plugin.getLogger().info("Event Type: " + event.getEventName());
+                    plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+                    plugin.getLogger().info("Cause: " + event.getCause());
+                }
+
                 logToFile(event, event.getEntity(), formatMessage(event));
             }
 
-//            plugin.getLogger().info("");
-//            plugin.getLogger().info("Unlogged event! Contact the mod author! Posting details:");
-//            plugin.getLogger().info("onEntityDamageEvent()");
-//            plugin.getLogger().info("Event Type: " + event.getEventName());
-//            plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
-//            plugin.getLogger().info("Cause: " + event.getCause());
+            if(PvPLogger.DEBUG_MODE)
+            {
+                plugin.getLogger().info("");
+                plugin.getLogger().info("Unlogged event! Contact the mod author! Posting details:");
+                plugin.getLogger().info("onEntityDamageEvent()");
+                plugin.getLogger().info("Event Type: " + event.getEventName());
+                plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+                plugin.getLogger().info("Cause: " + event.getCause());
+            }
         }
     }
 
@@ -73,7 +86,19 @@ public final class PvPLoggerListener implements Listener
     public void onEntityDamageByEntityEvent(final EntityDamageByEntityEvent event)
     {
         if(event.getDamager() instanceof Player)
+        {
+            if(PvPLogger.DEBUG_MODE)
+            {
+                plugin.getLogger().info("");
+                plugin.getLogger().info("onEntityDamageEvent()");
+                plugin.getLogger().info("Event Type: " + event.getEventName());
+                plugin.getLogger().info("Damager: " + ((Player) event.getDamager()).getName());
+                plugin.getLogger().info("Entity: " + event.getEntity());
+                plugin.getLogger().info("Cause: " + event.getCause());
+            }
+
             logToFile(event, event.getEntity(), formatMessage(event));
+        }
 }
 
     public String entityInfo(Block block)

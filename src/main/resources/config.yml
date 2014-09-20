@@ -1,2 +1,5 @@
 # PvPLogger config file
 log-damage: true
+
+# Outputs extra information into the console. (Warning: creates large files very quickly)
+debug: false
