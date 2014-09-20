@@ -120,9 +120,9 @@ public final class PvPLoggerListener implements Listener
             Entity entity = ((EntityDamageByBlockEvent) event).getEntity();
             boolean isLava = ((EntityDamageByBlockEvent) event).getCause().equals(EntityDamageEvent.DamageCause.LAVA);
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager) + " damaged " + Utils.getName(entity)
-                    + " (UUID: " + entity.getUniqueId() + ") for " + ((EntityDamageByBlockEvent) event).getDamage()
-                    + " damage. (" + event.getEventName() + ")"
+            return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager) + " damaged "
+                    + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") for "
+                    + ((EntityDamageByBlockEvent) event).getDamage() + " damage. (" + event.getEventName() + ")"
                     + "\n" + (isLava ? lavaInfo(entity) : entityInfo(damager))
                     + "\n" + entityInfo(entity)
                     + "\n";
@@ -131,10 +131,10 @@ public final class PvPLoggerListener implements Listener
             Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
             Entity entity = ((EntityDamageByEntityEvent) event).getEntity();
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(damager) + " (UUID: "
-                    + damager.getUniqueId() + ") damaged " + Utils.getName(entity) + " (UUID: "
-                    + entity.getUniqueId() + ") with " + Utils.getWeapon(damager) + " for "
-                    + ((EntityDamageByEntityEvent) event).getDamage() + " damage. (" + event.getEventName() + ")"
+            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(damager) + " (UUID: " + damager.getUniqueId()
+                    + ") damaged " + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") with "
+                    + Utils.getWeapon(damager) + " for " + ((EntityDamageByEntityEvent) event).getDamage()
+                    + " damage. (" + event.getEventName() + ")"
                     + "\n" + entityInfo(damager)
                     + "\n" + entityInfo(entity)
                     + "\n";
@@ -142,8 +142,8 @@ public final class PvPLoggerListener implements Listener
         {
             Entity entity = ((EntityDamageEvent) event).getEntity();
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(entity) + " (UUID: "
-                    + entity.getUniqueId() + ") was damaged by " + ((EntityDamageEvent) event).getCause() + " for "
+            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(entity) + " (UUID: " + entity.getUniqueId()
+                    + ") was damaged by " + ((EntityDamageEvent) event).getCause() + " for "
                     + ((EntityDamageEvent) event).getDamage() + " damage. (" + event.getEventName() + ")"
                     + "\n" + entityInfo(entity)
                     + "\n";
@@ -154,12 +154,13 @@ public final class PvPLoggerListener implements Listener
 
     public void logToFile(EntityDamageEvent event, Entity entity, String message)
     {
-        File saveTo;
+        File saveTo = new File(plugin.getDataFolder(), "userdata\\");
+
         FileWriter fileWriter;
         PrintWriter printWriter;
 
-        if(!plugin.getDataFolder().exists())
-            plugin.getDataFolder().mkdir();
+        if(!saveTo.exists())
+            saveTo.mkdirs();
 
         try
         {
@@ -169,8 +170,7 @@ public final class PvPLoggerListener implements Listener
 
                 if(damager instanceof Player)
                 {
-                    plugin.getLogger().info(damager.toString());
-                    saveTo = new File(plugin.getDataFolder(), damager.getUniqueId().toString() + ".log");
+                    saveTo = new File(saveTo, damager.getUniqueId() + ".log");
 
                     fileWriter = new FileWriter(saveTo, true);
                     printWriter = new PrintWriter(fileWriter);
@@ -182,7 +182,7 @@ public final class PvPLoggerListener implements Listener
 
             if(entity instanceof Player || entity.getType().equals(EntityType.PLAYER))
             {
-                saveTo = new File(plugin.getDataFolder(), (entity).getUniqueId().toString() + ".log");
+                saveTo = new File(saveTo, entity.getUniqueId() + ".log");
 
                 fileWriter = new FileWriter(saveTo, true);
                 printWriter = new PrintWriter(fileWriter);
