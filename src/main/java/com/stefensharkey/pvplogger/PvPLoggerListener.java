@@ -3,8 +3,8 @@ package com.stefensharkey.pvplogger;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -99,42 +99,9 @@ public final class PvPLoggerListener implements Listener
 
             logToFile(event, event.getEntity(), formatMessage(event));
         }
-}
-
-    public String entityInfo(Block block)
-    {
-        return block
-                + " {Coordinates:{X=" + block.getLocation().getBlockX()
-                + ", Y=" + block.getLocation().getBlockY()
-                + ", Z=" + block.getLocation().getBlockZ()
-                + "}, World=" + block.getLocation().getWorld().getName() + "}";
     }
 
-    public String entityInfo(Entity entity)
-    {
-        return Utils.getName(entity)
-                + " {Coordinates:{X=" + entity.getLocation().getX()
-                + ", Y=" + entity.getLocation().getY()
-                + ", Z=" + entity.getLocation().getZ()
-                + "}, Orientation:{Yaw=" + entity.getLocation().getYaw()
-                + ", Pitch=" + entity.getLocation().getPitch()
-                + ", Direction=" + Utils.getDirection(entity)
-                + "}, World=" + entity.getLocation().getWorld().getName()
-                + ", entity-id=" + entity.getEntityId()
-                + ", entity.getType()=" + entity.getType()
-                + "}";
-    }
-
-    public String lavaInfo(Entity entity)
-    {
-        return "Lava"
-                + " {Coordinates:{X=" + entity.getLocation().getBlockX()
-                + ", Y=" + entity.getLocation().getBlockY()
-                + ", Z=" + entity.getLocation().getBlockZ()
-                + "}, World=" + entity.getLocation().getWorld().getName() + "}";
-    }
-
-    public String formatMessage(Event event)
+    public String formatMessage(EntityDamageEvent event)
     {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
@@ -142,35 +109,41 @@ public final class PvPLoggerListener implements Listener
         if(event instanceof EntityDamageByBlockEvent)
         {
             Block damager = ((EntityDamageByBlockEvent) event).getDamager();
-            Entity entity = ((EntityDamageByBlockEvent) event).getEntity();
-            boolean isLava = ((EntityDamageByBlockEvent) event).getCause().equals(EntityDamageEvent.DamageCause.LAVA);
+            Entity entity = event.getEntity();
+            double damage = event.getDamage();
+            boolean isLava = event.getCause().equals(EntityDamageEvent.DamageCause.LAVA);
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager) + " damaged "
-                    + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") for "
-                    + ((EntityDamageByBlockEvent) event).getDamage() + " damage. (" + event.getEventName() + ")"
-                    + "\n" + (isLava ? lavaInfo(entity) : entityInfo(damager))
-                    + "\n" + entityInfo(entity)
+            return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager)
+                    + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
+                    + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") for " + damage + " damage."
+                    + (PvPLogger.DEBUG_MODE ? " (" + event.getEventName() + ")" : "")
+                    + "\n" + (isLava ? getLavaInfo(entity) : getEntityInfo(damager))
+                    + "\n" + getEntityInfo(event, entity)
                     + "\n";
         } else if(event instanceof EntityDamageByEntityEvent)
         {
             Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
-            Entity entity = ((EntityDamageByEntityEvent) event).getEntity();
+            Entity entity = event.getEntity();
+            double damage = event.getDamage();
 
             return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(damager) + " (UUID: " + damager.getUniqueId()
-                    + ") damaged " + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") with "
-                    + Utils.getWeapon(damager) + " for " + ((EntityDamageByEntityEvent) event).getDamage()
-                    + " damage. (" + event.getEventName() + ")"
-                    + "\n" + entityInfo(damager)
-                    + "\n" + entityInfo(entity)
+                    + ")" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
+                    + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") with " + Utils.getWeapon(damager)
+                    + " for " + damage + " damage." + (PvPLogger.DEBUG_MODE ? " (" + event.getEventName() + ")" : "")
+                    + event.getEventName() + ")"
+                    + "\n" + getEntityInfo(event, damager)
+                    + "\n" + getEntityInfo(event, entity)
                     + "\n";
-        } else if(event instanceof EntityDamageEvent)
+        } else if(event != null)
         {
-            Entity entity = ((EntityDamageEvent) event).getEntity();
+            Entity entity = event.getEntity();
+            double damage = event.getDamage();
 
             return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(entity) + " (UUID: " + entity.getUniqueId()
-                    + ") was damaged by " + ((EntityDamageEvent) event).getCause() + " for "
-                    + ((EntityDamageEvent) event).getDamage() + " damage. (" + event.getEventName() + ")"
-                    + "\n" + entityInfo(entity)
+                    + ") was" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ") + "by "
+                    + event.getCause() + " for " + damage + " damage."
+                    + (PvPLogger.DEBUG_MODE ? " (" + event.getEventName() + ")" : "")
+                    + "\n" + getEntityInfo(event, entity)
                     + "\n";
         }
 
@@ -190,26 +163,20 @@ public final class PvPLoggerListener implements Listener
         try
         {
             if(event instanceof EntityDamageByEntityEvent)
-            {
-                Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
-
-                if(damager instanceof Player)
+                if(entity instanceof Player || entity.getType().equals(EntityType.PLAYER))
                 {
-                    saveTo = new File(saveTo, damager.getUniqueId() + ".log");
+                    Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
 
-                    fileWriter = new FileWriter(saveTo, true);
+                    fileWriter = new FileWriter(new File(saveTo, damager.getUniqueId() + ".log"), true);
                     printWriter = new PrintWriter(fileWriter);
                     printWriter.println(message);
                     printWriter.flush();
                     printWriter.close();
                 }
-            }
 
             if(entity instanceof Player || entity.getType().equals(EntityType.PLAYER))
             {
-                saveTo = new File(saveTo, entity.getUniqueId() + ".log");
-
-                fileWriter = new FileWriter(saveTo, true);
+                fileWriter = new FileWriter(new File(saveTo, entity.getUniqueId() + ".log"), true);
                 printWriter = new PrintWriter(fileWriter);
                 printWriter.println(message);
                 printWriter.flush();
@@ -219,5 +186,39 @@ public final class PvPLoggerListener implements Listener
         {
             e.printStackTrace();
         }
+    }
+
+    public String getEntityInfo(Block block)
+    {
+        return block
+                + " (" + block.getType()
+                + ") {Coordinates:{X=" + block.getLocation().getBlockX()
+                + ", Y=" + block.getLocation().getBlockY()
+                + ", Z=" + block.getLocation().getBlockZ()
+                + "}, World=" + block.getLocation().getWorld().getName() + "}";
+    }
+
+    public String getEntityInfo(EntityDamageEvent event, Entity entity)
+    {
+        return Utils.getName(entity)
+                + " {Coordinates:{X=" + entity.getLocation().getX()
+                + ", Y=" + entity.getLocation().getY()
+                + ", Z=" + entity.getLocation().getZ()
+                + "}, Orientation:{Yaw=" + entity.getLocation().getYaw()
+                + ", Pitch=" + entity.getLocation().getPitch()
+                + ", Direction=" + Utils.getDirection(entity)
+                + "}, World=" + entity.getLocation().getWorld().getName()
+                + (entity instanceof LivingEntity ? ", health=" + (((LivingEntity) entity).getHealth() - event.getDamage()) : "")
+                + ", entity-type=" + entity.getType()
+                + "}";
+    }
+
+    public String getLavaInfo(Entity entity)
+    {
+        return "Lava"
+                + " {Coordinates:{X=" + entity.getLocation().getBlockX()
+                + ", Y=" + entity.getLocation().getBlockY()
+                + ", Z=" + entity.getLocation().getBlockZ()
+                + "}, World=" + entity.getLocation().getWorld().getName() + "}";
     }
 }
