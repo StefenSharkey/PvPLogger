@@ -44,15 +44,13 @@ public final class PvPLoggerListener implements Listener
             logToFile(event, event.getEntity(), formatMessage(event));
     }
 
-    public String entityInfo(Block entity)
+    public String entityInfo(Block block)
     {
-        return entity
-                + " {Coordinates:{X=" + entity.getLocation().getBlockX()
-                + ", Y=" + entity.getLocation().getBlockY()
-                + ", Z=" + entity.getLocation().getBlockZ()
-                + "}, Orientation:{Yaw=" + entity.getLocation().getYaw()
-                + ", Pitch=" + entity.getLocation().getPitch()
-                + "}, World=" + entity.getLocation().getWorld().getName() + "}";
+        return block
+                + " {Coordinates:{X=" + block.getLocation().getBlockX()
+                + ", Y=" + block.getLocation().getBlockY()
+                + ", Z=" + block.getLocation().getBlockZ()
+                + "}, World=" + block.getLocation().getWorld().getName() + "}";
     }
 
     public String entityInfo(Entity entity)
@@ -67,6 +65,15 @@ public final class PvPLoggerListener implements Listener
                 + "}, World=" + entity.getLocation().getWorld().getName() + "}";
     }
 
+    public String lavaInfo(Entity entity)
+    {
+        return "Lava"
+                + " {Coordinates:{X=" + entity.getLocation().getBlockX()
+                + ", Y=" + entity.getLocation().getBlockY()
+                + ", Z=" + entity.getLocation().getBlockZ()
+                + "}, World=" + entity.getLocation().getWorld().getName() + "}";
+    }
+
     public String formatMessage(Event event)
     {
         Calendar cal = Calendar.getInstance();
@@ -74,44 +81,45 @@ public final class PvPLoggerListener implements Listener
 
         if(event instanceof EntityDamageByBlockEvent)
         {
-            Block attacker = ((EntityDamageByBlockEvent) event).getDamager();
-            Entity damaged = ((EntityDamageByBlockEvent) event).getEntity();
+            Block damager = ((EntityDamageByBlockEvent) event).getDamager();
+            Entity entity = ((EntityDamageByBlockEvent) event).getEntity();
+            boolean isLava = ((EntityDamageByBlockEvent) event).getCause().equals(EntityDamageEvent.DamageCause.LAVA);
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + attacker + " attacked " + Utils.getName(damaged)
-                    + " (UUID: " + damaged.getUniqueId() + ") for "+ ((EntityDamageByBlockEvent) event).getDamage()
+            return  "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager) + " damaged " + Utils.getName(entity)
+                    + " (UUID: " + entity.getUniqueId() + ") for "+ ((EntityDamageByBlockEvent) event).getDamage()
                     + " damage."
-                    + "\n" + entityInfo(attacker)
-                    + "\n" + entityInfo(damaged)
+                    + "\n" + (isLava ? lavaInfo(entity) : entityInfo(damager))
+                    + "\n" + entityInfo(entity)
                     + "\n";
         }
         else if(event instanceof EntityDamageByEntityEvent)
         {
-            Entity attacker = ((EntityDamageByEntityEvent) event).getDamager();
-            Entity damaged = ((EntityDamageByEntityEvent) event).getEntity();
+            Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+            Entity entity = ((EntityDamageByEntityEvent) event).getEntity();
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(attacker) + " (UUID: "
-                    + attacker.getUniqueId() + ") attacked " + Utils.getName(damaged) + " (UUID: "
-                    + damaged.getUniqueId() + ") with " + Utils.getWeapon(attacker) + " for "
+            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(damager) + " (UUID: "
+                    + damager.getUniqueId() + ") damaged " + Utils.getName(entity) + " (UUID: "
+                    + entity.getUniqueId() + ") with " + Utils.getWeapon(damager) + " for "
                     + ((EntityDamageByEntityEvent) event).getDamage() + " damage."
-                    + "\n" + entityInfo(attacker)
-                    + "\n" + entityInfo(damaged)
+                    + "\n" + entityInfo(damager)
+                    + "\n" + entityInfo(entity)
                     + "\n";
         }
         else if(event instanceof EntityDamageEvent)
         {
-            Entity damaged = ((EntityDamageEvent) event).getEntity();
+            Entity entity = ((EntityDamageEvent) event).getEntity();
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(damaged) + " (UUID: "
-                    + damaged.getUniqueId() + ") was damaged by " + ((EntityDamageEvent) event).getCause() + " for "
+            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(entity) + " (UUID: "
+                    + entity.getUniqueId() + ") was damaged by " + ((EntityDamageEvent) event).getCause() + " for "
                     + ((EntityDamageEvent) event).getDamage() + " damage."
-                    + "\n" + entityInfo(damaged)
+                    + "\n" + entityInfo(entity)
                     + "\n";
         }
 
         return "";
     }
 
-    public void logToFile(EntityDamageEvent event, Entity damaged, String message)
+    public void logToFile(EntityDamageEvent event, Entity entity, String message)
     {
         File saveTo;
         FileWriter fileWriter;
@@ -138,9 +146,9 @@ public final class PvPLoggerListener implements Listener
                 }
             }
 
-            if(damaged instanceof Player)
+            if(entity instanceof Player)
             {
-                saveTo = new File(plugin.getDataFolder(), (damaged).getUniqueId().toString() + ".log");
+                saveTo = new File(plugin.getDataFolder(), (entity).getUniqueId().toString() + ".log");
 
                 fileWriter = new FileWriter(saveTo, true);
                 printWriter = new PrintWriter(fileWriter);
