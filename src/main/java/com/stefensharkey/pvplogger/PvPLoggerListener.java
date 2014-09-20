@@ -179,7 +179,7 @@ public final class PvPLoggerListener implements Listener
 
     public void logToFile(EntityDamageEvent event, Entity entity, String message)
     {
-        File saveTo = new File(plugin.getDataFolder(), "userdata\\");
+        File saveTo = new File(plugin.getDataFolder(), "userdata" + File.separator);
 
         FileWriter fileWriter;
         PrintWriter printWriter;
