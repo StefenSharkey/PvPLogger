@@ -130,7 +130,6 @@ public final class PvPLoggerListener implements Listener
                     + ")" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
                     + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") with " + Utils.getWeapon(damager)
                     + " for " + damage + " damage." + (PvPLogger.DEBUG_MODE ? " (" + event.getEventName() + ")" : "")
-                    + event.getEventName() + ")"
                     + "\n" + getEntityInfo(event, damager)
                     + "\n" + getEntityInfo(event, entity)
                     + "\n";
@@ -210,8 +209,15 @@ public final class PvPLoggerListener implements Listener
                 + "}, Orientation:{Yaw=" + entity.getLocation().getYaw()
                 + ", Pitch=" + entity.getLocation().getPitch()
                 + ", Direction=" + Utils.getDirection(entity)
+                + "}, Equipment:{"
+                + (entity instanceof LivingEntity ? "Hand=" + ((LivingEntity) entity).getEquipment().getItemInHand()
+                +  ", Helmet=" + ((LivingEntity) entity).getEquipment().getHelmet()
+                +  ", Chestplate=" + ((LivingEntity) entity).getEquipment().getChestplate()
+                +  ", Leggings=" + ((LivingEntity) entity).getEquipment().getLeggings()
+                +  ", Boots=" + ((LivingEntity) entity).getEquipment().getBoots() : "")
                 + "}, World=" + entity.getLocation().getWorld().getName()
                 + (entity instanceof LivingEntity ? ", health=" + (((LivingEntity) entity).getHealth() - event.getDamage()) : "")
+                + (entity instanceof Player ? ", flying=" + ((Player) entity).isFlying() : "")
                 + ", entity-type=" + entity.getType()
                 + "}";
     }
