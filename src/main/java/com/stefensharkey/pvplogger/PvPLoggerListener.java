@@ -1,5 +1,6 @@
 package com.stefensharkey.pvplogger;
 
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -211,11 +212,15 @@ public final class PvPLoggerListener implements Listener
                 + ", Direction=" + Utils.getDirection(entity)
                 + "}, Equipment:{"
                 + (entity instanceof LivingEntity ? "Hand=" + ((LivingEntity) entity).getEquipment().getItemInHand()
-                +  ", Helmet=" + ((LivingEntity) entity).getEquipment().getHelmet()
-                +  ", Chestplate=" + ((LivingEntity) entity).getEquipment().getChestplate()
-                +  ", Leggings=" + ((LivingEntity) entity).getEquipment().getLeggings()
-                +  ", Boots=" + ((LivingEntity) entity).getEquipment().getBoots()
-                +  "}, Effects:{" +  ((LivingEntity) entity).getActivePotionEffects()
+                +  (((LivingEntity) entity).getEquipment().getHelmet() != null
+                    && ((LivingEntity) entity).getEquipment().getHelmet().getType() != Material.AIR ? ", Helmet=" + ((LivingEntity) entity).getEquipment().getHelmet() : "")
+                +  (((LivingEntity) entity).getEquipment().getChestplate() != null
+                    && ((LivingEntity) entity).getEquipment().getChestplate().getType() != Material.AIR ? ", Chestplate=" + ((LivingEntity) entity).getEquipment().getChestplate() : "")
+                +  (((LivingEntity) entity).getEquipment().getLeggings() != null
+                    && ((LivingEntity) entity).getEquipment().getLeggings().getType() != Material.AIR ?", Leggings=" + ((LivingEntity) entity).getEquipment().getLeggings() : "")
+                +  (((LivingEntity) entity).getEquipment().getBoots() != null
+                    && ((LivingEntity) entity).getEquipment().getBoots().getType() != Material.AIR ? ", Boots=" + ((LivingEntity) entity).getEquipment().getBoots() : "")
+                +  (((LivingEntity) entity).getActivePotionEffects().size() > 0 ? "}, Effects:{" +  ((LivingEntity) entity).getActivePotionEffects() : "")
                 +  "}, Health=" + (((LivingEntity) entity).getHealth() - event.getDamage()) : "")
                 + ", World=" + entity.getLocation().getWorld().getName()
                 + (entity instanceof Player ? ", Flying=" + ((Player) entity).isFlying()
