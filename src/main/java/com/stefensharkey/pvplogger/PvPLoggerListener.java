@@ -214,11 +214,13 @@ public final class PvPLoggerListener implements Listener
                 +  ", Helmet=" + ((LivingEntity) entity).getEquipment().getHelmet()
                 +  ", Chestplate=" + ((LivingEntity) entity).getEquipment().getChestplate()
                 +  ", Leggings=" + ((LivingEntity) entity).getEquipment().getLeggings()
-                +  ", Boots=" + ((LivingEntity) entity).getEquipment().getBoots() : "")
-                + "}, World=" + entity.getLocation().getWorld().getName()
-                + (entity instanceof LivingEntity ? ", health=" + (((LivingEntity) entity).getHealth() - event.getDamage()) : "")
-                + (entity instanceof Player ? ", flying=" + ((Player) entity).isFlying() : "")
-                + ", entity-type=" + entity.getType()
+                +  ", Boots=" + ((LivingEntity) entity).getEquipment().getBoots()
+                +  "}, Effects:{" +  ((LivingEntity) entity).getActivePotionEffects()
+                +  "}, Health=" + (((LivingEntity) entity).getHealth() - event.getDamage()) : "")
+                + ", World=" + entity.getLocation().getWorld().getName()
+                + (entity instanceof Player ? ", Flying=" + ((Player) entity).isFlying()
+                +  ", GameMode=" + ((Player) entity).getGameMode() : "")
+                + ", EntityType=" + entity.getType()
                 + "}";
     }
 
