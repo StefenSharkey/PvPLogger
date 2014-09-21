@@ -163,9 +163,11 @@ public final class PvPLoggerListener implements Listener
         try
         {
             if(event instanceof EntityDamageByEntityEvent)
-                if(entity instanceof Player || entity.getType().equals(EntityType.PLAYER))
+            {
+                Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+
+                if(damager instanceof Player || damager.getType().equals(EntityType.PLAYER))
                 {
-                    Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
 
                     fileWriter = new FileWriter(new File(saveTo, damager.getUniqueId() + ".log"), true);
                     printWriter = new PrintWriter(fileWriter);
@@ -173,6 +175,7 @@ public final class PvPLoggerListener implements Listener
                     printWriter.flush();
                     printWriter.close();
                 }
+            }
 
             if(entity instanceof Player || entity.getType().equals(EntityType.PLAYER))
             {
