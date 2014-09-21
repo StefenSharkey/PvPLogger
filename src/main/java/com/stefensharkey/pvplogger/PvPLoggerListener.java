@@ -210,8 +210,7 @@ public final class PvPLoggerListener implements Listener
                 + "}, Orientation:{Yaw=" + entity.getLocation().getYaw()
                 + ", Pitch=" + entity.getLocation().getPitch()
                 + ", Direction=" + Utils.getDirection(entity)
-                + "}, Equipment:{"
-                + (entity instanceof LivingEntity ? "Hand=" + ((LivingEntity) entity).getEquipment().getItemInHand()
+                + (entity instanceof LivingEntity ? "}, Equipment:{Hand=" + ((LivingEntity) entity).getEquipment().getItemInHand()
                 +  (((LivingEntity) entity).getEquipment().getHelmet() != null
                     && ((LivingEntity) entity).getEquipment().getHelmet().getType() != Material.AIR ? ", Helmet=" + ((LivingEntity) entity).getEquipment().getHelmet() : "")
                 +  (((LivingEntity) entity).getEquipment().getChestplate() != null
@@ -221,7 +220,7 @@ public final class PvPLoggerListener implements Listener
                 +  (((LivingEntity) entity).getEquipment().getBoots() != null
                     && ((LivingEntity) entity).getEquipment().getBoots().getType() != Material.AIR ? ", Boots=" + ((LivingEntity) entity).getEquipment().getBoots() : "")
                 +  (((LivingEntity) entity).getActivePotionEffects().size() > 0 ? "}, Effects:{" +  ((LivingEntity) entity).getActivePotionEffects() : "")
-                +  "}, Health=" + (((LivingEntity) entity).getHealth() - event.getDamage()) : "")
+                +  "}, Health=" + (((LivingEntity) entity).getHealth() - event.getDamage()) : "}")
                 + ", World=" + entity.getLocation().getWorld().getName()
                 + (entity instanceof Player ? ", Flying=" + ((Player) entity).isFlying()
                 +  ", GameMode=" + ((Player) entity).getGameMode() : "")
