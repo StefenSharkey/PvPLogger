@@ -32,17 +32,13 @@ public class PvPLogger extends JavaPlugin
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
     {
-        Player player = (Player) sender;
-
         if(args.length != 0)
-        {
-            if(args[0].equalsIgnoreCase("reload") && player.hasPermission("pvplogger.reload"))
+            if(args[0].equalsIgnoreCase("reload") && sender.hasPermission("pvplogger.reload"))
             {
                 reloadConfig();
                 getDebugMode();
-                player.sendMessage(ChatColor.DARK_RED + "PvPLogger has been reloaded!");
+                sender.sendMessage(ChatColor.DARK_RED + "PvPLogger has been reloaded!");
             }
-        }
 
         return false;
     }
