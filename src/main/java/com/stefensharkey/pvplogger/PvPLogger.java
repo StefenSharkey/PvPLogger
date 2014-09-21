@@ -1,5 +1,9 @@
 package com.stefensharkey.pvplogger;
 
+import org.bukkit.ChatColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -14,7 +18,7 @@ public class PvPLogger extends JavaPlugin
         if(!new File(getDataFolder() + File.separator + "config.yml").exists())
             saveDefaultConfig();
 
-        DEBUG_MODE = getConfig().getBoolean("debug");
+        getDebugMode();
 
         getServer().getPluginManager().registerEvents(new PvPLoggerListener(this), this);
     }
@@ -23,5 +27,28 @@ public class PvPLogger extends JavaPlugin
     public void onDisable()
     {
 
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
+    {
+        Player player = (Player) sender;
+
+        if(args.length != 0)
+        {
+            if(args[0].equalsIgnoreCase("reload") && player.hasPermission("pvplogger.reload"))
+            {
+                reloadConfig();
+                getDebugMode();
+                player.sendMessage(ChatColor.DARK_RED + "PvPLogger has been reloaded!");
+            }
+        }
+
+        return false;
+    }
+
+    public boolean getDebugMode()
+    {
+        return DEBUG_MODE = getConfig().getBoolean("debug");
     }
 }
