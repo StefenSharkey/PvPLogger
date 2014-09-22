@@ -2,6 +2,7 @@ package com.stefensharkey.pvplogger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Map;
 
 public final class PvPLoggerListener implements Listener
 {
@@ -234,15 +236,15 @@ public final class PvPLoggerListener implements Listener
             JsonObject entityOrientation = new JsonObject();
             JsonObject entityEquipment = new JsonObject();
             JsonObject entityHand = new JsonObject();
-            JsonObject entityHandEnchants = new JsonObject();
+            JsonArray entityHandEnchants = new JsonArray();
             JsonObject entityHelmet = new JsonObject();
-            JsonObject entityHelmetEnchants = new JsonObject();
+            JsonArray entityHelmetEnchants = new JsonArray();
             JsonObject entityChestplate = new JsonObject();
-            JsonObject entityChestplateEnchants = new JsonObject();
+            JsonArray entityChestplateEnchants = new JsonArray();
             JsonObject entityLeggings = new JsonObject();
-            JsonObject entityLeggingsEnchants = new JsonObject();
+            JsonArray entityLeggingsEnchants = new JsonArray();
             JsonObject entityBoots = new JsonObject();
-            JsonObject entityBootsEnchants = new JsonObject();
+            JsonArray entityBootsEnchants = new JsonArray();
 
             if(entity instanceof Projectile)
                 if(((Projectile) entity).getShooter() instanceof LivingEntity)
@@ -299,10 +301,14 @@ public final class PvPLoggerListener implements Listener
 
                         if(hand.getItemMeta().hasEnchants())
                         {
-                            for(Enchantment enchantment : hand.getItemMeta().getEnchants().keySet())
+                            for(Map.Entry<Enchantment, Integer> enchantment: hand.getItemMeta().getEnchants().entrySet())
                             {
-                                entityHandEnchants.addProperty("name", enchantment.getName());
-                                entityHandEnchants.addProperty("level", hand.getItemMeta().getEnchantLevel(enchantment));
+                                JsonObject entityHandEnchant = new JsonObject();
+
+                                entityHandEnchants.add(entityHandEnchant);
+
+                                entityHandEnchant.addProperty("name", enchantment.getKey().getName());
+                                entityHandEnchant.addProperty("level", enchantment.getValue());
                             }
 
                             entityHand.add("enchantments", entityHandEnchants);
@@ -327,10 +333,14 @@ public final class PvPLoggerListener implements Listener
 
                         if(helmet.getItemMeta().hasEnchants())
                         {
-                            for(Enchantment enchantment : helmet.getItemMeta().getEnchants().keySet())
+                            for(Map.Entry<Enchantment, Integer> enchantment: helmet.getItemMeta().getEnchants().entrySet())
                             {
-                                entityHelmetEnchants.addProperty("name", enchantment.getName());
-                                entityHelmetEnchants.addProperty("level", helmet.getItemMeta().getEnchantLevel(enchantment));
+                                JsonObject entityHelmetEnchant = new JsonObject();
+
+                                entityHelmetEnchants.add(entityHelmetEnchant);
+
+                                entityHelmetEnchant.addProperty("name", enchantment.getKey().getName());
+                                entityHelmetEnchant.addProperty("level", enchantment.getValue());
                             }
 
                             entityHelmet.add("enchantments", entityHelmetEnchants);
@@ -355,13 +365,17 @@ public final class PvPLoggerListener implements Listener
 
                         if(chestplate.getItemMeta().hasEnchants())
                         {
-                            for(Enchantment enchantment : chestplate.getItemMeta().getEnchants().keySet())
+                            for(Map.Entry<Enchantment, Integer> enchantment: chestplate.getItemMeta().getEnchants().entrySet())
                             {
-                                entityChestplateEnchants.addProperty("name", enchantment.getName());
-                                entityChestplateEnchants.addProperty("level", chestplate.getItemMeta().getEnchantLevel(enchantment));
+                                JsonObject entityChestplateEnchant = new JsonObject();
+
+                                entityChestplateEnchants.add(entityChestplateEnchant);
+
+                                entityChestplateEnchant.addProperty("name", enchantment.getKey().getName());
+                                entityChestplateEnchant.addProperty("level", enchantment.getValue());
                             }
 
-                            entityChestplate.add("enchantments", entityChestplateEnchants);
+                            entityChestplate.add("enchantments", entityBootsEnchants);
                         }
                     }
 
@@ -383,10 +397,14 @@ public final class PvPLoggerListener implements Listener
 
                         if(leggings.getItemMeta().hasEnchants())
                         {
-                            for(Enchantment enchantment : leggings.getItemMeta().getEnchants().keySet())
+                            for(Map.Entry<Enchantment, Integer> enchantment: leggings.getItemMeta().getEnchants().entrySet())
                             {
-                                entityLeggingsEnchants.addProperty("name", enchantment.getName());
-                                entityLeggingsEnchants.addProperty("level", leggings.getItemMeta().getEnchantLevel(enchantment));
+                                JsonObject entityLeggingsEnchant = new JsonObject();
+
+                                entityLeggingsEnchants.add(entityLeggingsEnchant);
+
+                                entityLeggingsEnchant.addProperty("name", enchantment.getKey().getName());
+                                entityLeggingsEnchant.addProperty("level", enchantment.getValue());
                             }
 
                             entityLeggings.add("enchantments", entityLeggingsEnchants);
@@ -411,10 +429,14 @@ public final class PvPLoggerListener implements Listener
 
                         if(boots.getItemMeta().hasEnchants())
                         {
-                            for(Enchantment enchantment : boots.getItemMeta().getEnchants().keySet())
+                            for(Map.Entry<Enchantment, Integer> enchantment: boots.getItemMeta().getEnchants().entrySet())
                             {
-                                entityBootsEnchants.addProperty("name", enchantment.getName());
-                                entityBootsEnchants.addProperty("level", boots.getItemMeta().getEnchantLevel(enchantment));
+                                JsonObject entityBootsEnchant = new JsonObject();
+
+                                entityBootsEnchants.add(entityBootsEnchant);
+
+                                entityBootsEnchant.addProperty("name", enchantment.getKey().getName());
+                                entityBootsEnchant.addProperty("level", enchantment.getValue());
                             }
 
                             entityBoots.add("enchantments", entityBootsEnchants);
