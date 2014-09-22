@@ -22,7 +22,7 @@ public class Utils
         return "UNKNOWN";
     }
 
-    public static String getName(Entity entity)
+    public static String getEntityName(Entity entity)
     {
         if(entity instanceof Player)
             return ((Player) entity).getName();

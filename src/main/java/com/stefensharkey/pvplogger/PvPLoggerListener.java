@@ -1,17 +1,19 @@
 package com.stefensharkey.pvplogger;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -41,7 +43,7 @@ public final class PvPLoggerListener implements Listener
             {
                 if(!event.getEventName().equals("EntityDamageByEntityEvent"))
                 {
-                    if(PvPLogger.DEBUG_MODE)
+                    if(PvPLogger.debugMode)
                     {
                         plugin.getLogger().info("");
                         plugin.getLogger().info("onEntityDamageEvent()");
@@ -58,7 +60,7 @@ public final class PvPLoggerListener implements Listener
             }
             else if(event.getCause() == EntityDamageEvent.DamageCause.MAGIC)
             {
-                if(PvPLogger.DEBUG_MODE)
+                if(PvPLogger.debugMode)
                 {
                     plugin.getLogger().info("");
                     plugin.getLogger().info("onEntityDamageEvent()");
@@ -70,7 +72,7 @@ public final class PvPLoggerListener implements Listener
                 logToFile(event, event.getEntity(), formatMessage(event));
             }
 
-            if(PvPLogger.DEBUG_MODE)
+            if(PvPLogger.debugMode)
             {
                 plugin.getLogger().info("");
                 plugin.getLogger().info("Unlogged event! Contact the mod author! Posting details:");
@@ -88,7 +90,7 @@ public final class PvPLoggerListener implements Listener
     {
         if(event.getDamager() instanceof Player)
         {
-            if(PvPLogger.DEBUG_MODE)
+            if(PvPLogger.debugMode)
             {
                 plugin.getLogger().info("");
                 plugin.getLogger().info("onEntityDamageEvent()");
@@ -116,8 +118,8 @@ public final class PvPLoggerListener implements Listener
 
             return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager)
                     + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
-                    + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") for " + damage + " damage."
-                    + (PvPLogger.DEBUG_MODE ? " (" + event.getEventName() + ")" : "")
+                    + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId() + ") for " + damage + " damage."
+                    + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
                     + "\n" + (isLava ? getLavaInfo(entity) : getEntityInfo(damager))
                     + "\n" + getEntityInfo(event, entity)
                     + "\n";
@@ -127,10 +129,10 @@ public final class PvPLoggerListener implements Listener
             Entity entity = event.getEntity();
             double damage = event.getDamage();
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(damager) + " (UUID: " + damager.getUniqueId()
+            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(damager) + " (UUID: " + damager.getUniqueId()
                     + ")" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
-                    + Utils.getName(entity) + " (UUID: " + entity.getUniqueId() + ") with " + Utils.getWeapon(damager)
-                    + " for " + damage + " damage." + (PvPLogger.DEBUG_MODE ? " (" + event.getEventName() + ")" : "")
+                    + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId() + ") with " + Utils.getWeapon(damager)
+                    + " for " + damage + " damage." + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
                     + "\n" + getEntityInfo(event, damager)
                     + "\n" + getEntityInfo(event, entity)
                     + "\n";
@@ -139,10 +141,10 @@ public final class PvPLoggerListener implements Listener
             Entity entity = event.getEntity();
             double damage = event.getDamage();
 
-            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getName(entity) + " (UUID: " + entity.getUniqueId()
+            return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId()
                     + ") was" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ") + "by "
                     + event.getCause() + " for " + damage + " damage."
-                    + (PvPLogger.DEBUG_MODE ? " (" + event.getEventName() + ")" : "")
+                    + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
                     + "\n" + getEntityInfo(event, entity)
                     + "\n";
         }
@@ -193,6 +195,26 @@ public final class PvPLoggerListener implements Listener
 
     public String getEntityInfo(Block block)
     {
+        if(PvPLogger.storageType == PvPLogger.JSON)
+        {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            JsonObject obj = new JsonObject();
+            JsonObject blockObj = new JsonObject();
+            JsonObject blockCoords = new JsonObject();
+
+            obj.add(block.toString(), blockObj);
+
+            blockObj.addProperty("name", block.toString());
+            blockObj.addProperty("world", block.getWorld().getName());
+            blockObj.add("coordinates", blockCoords);
+
+            blockCoords.addProperty("x", block.getLocation().getX());
+            blockCoords.addProperty("y", block.getLocation().getY());
+            blockCoords.addProperty("z", block.getLocation().getZ());
+
+            return gson.toJson(obj);
+        }
+
         return block
                 + " (" + block.getType()
                 + ") {Coordinates:{X=" + block.getLocation().getBlockX()
@@ -203,7 +225,211 @@ public final class PvPLoggerListener implements Listener
 
     public String getEntityInfo(EntityDamageEvent event, Entity entity)
     {
-        return Utils.getName(entity)
+        if(PvPLogger.storageType == PvPLogger.JSON)
+        {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            JsonObject obj = new JsonObject();
+            JsonObject entityObj = new JsonObject();
+            JsonObject entityCoords = new JsonObject();
+            JsonObject entityOrientation = new JsonObject();
+            JsonObject entityEquipment = new JsonObject();
+            JsonObject entityHand = new JsonObject();
+            JsonObject entityHandEnchants = new JsonObject();
+            JsonObject entityHelmet = new JsonObject();
+            JsonObject entityHelmetEnchants = new JsonObject();
+            JsonObject entityChestplate = new JsonObject();
+            JsonObject entityChestplateEnchants = new JsonObject();
+            JsonObject entityLeggings = new JsonObject();
+            JsonObject entityLeggingsEnchants = new JsonObject();
+            JsonObject entityBoots = new JsonObject();
+            JsonObject entityBootsEnchants = new JsonObject();
+
+            if(entity instanceof Projectile)
+                if(((Projectile) entity).getShooter() instanceof LivingEntity)
+                    entity = (Entity) ((Projectile) entity).getShooter();
+
+            obj.add(Utils.getEntityName(entity), entityObj);
+
+            entityObj.addProperty("name", Utils.getEntityName(entity));
+            entityObj.addProperty("uuid", entity.getUniqueId().toString());
+            entityObj.addProperty("type", entity.getType().toString());
+            entityObj.addProperty("world", entity.getWorld().getName());
+
+            if(entity instanceof LivingEntity)
+            {
+                entityObj.addProperty("health", (event.getEntity() == entity
+                        ? ((LivingEntity) entity).getHealth() - event.getDamage()
+                        : ((LivingEntity) entity).getHealth()));
+                entityObj.addProperty("dead", event.getEntity() == entity && ((LivingEntity) entity).getHealth() - event.getDamage() <= 0);
+            }
+
+            if(entity instanceof Player)
+            {
+                entityObj.addProperty("hunger", ((Player) entity).getFoodLevel());
+                entityObj.addProperty("gamemode", ((Player) entity).getGameMode().toString());
+                entityObj.addProperty("flying", ((Player) entity).isFlying());
+            }
+
+            entityObj.add("coordinates", entityCoords);
+            entityObj.add("orientation", entityOrientation);
+
+            if(entity instanceof LivingEntity)
+                entityObj.add("equipment", entityEquipment);
+
+            entityCoords.addProperty("x", entity.getLocation().getX());
+            entityCoords.addProperty("y", entity.getLocation().getY());
+            entityCoords.addProperty("z", entity.getLocation().getZ());
+
+            entityOrientation.addProperty("yaw", entity.getLocation().getYaw());
+            entityOrientation.addProperty("pitch", entity.getLocation().getPitch());
+            entityOrientation.addProperty("direction", Utils.getDirection(entity));
+
+            if(entity instanceof LivingEntity)
+            {
+                if(((LivingEntity) entity).getEquipment().getItemInHand() != null)
+                {
+                    ItemStack hand = ((LivingEntity) entity).getEquipment().getItemInHand();
+
+                    entityHand.addProperty("item", hand.getData().getItemType().toString());
+
+                    if(hand.hasItemMeta())
+                    {
+                        if(hand.getItemMeta().hasDisplayName())
+                            entityHand.addProperty("name", hand.getItemMeta().getDisplayName());
+
+                        if(hand.getItemMeta().hasEnchants())
+                        {
+                            for(Enchantment enchantment : hand.getItemMeta().getEnchants().keySet())
+                            {
+                                entityHandEnchants.addProperty("name", enchantment.getName());
+                                entityHandEnchants.addProperty("level", hand.getItemMeta().getEnchantLevel(enchantment));
+                            }
+
+                            entityHand.add("enchantments", entityHandEnchants);
+                        }
+                    }
+
+                    entityHand.addProperty("durability", hand.getDurability());
+                    entityEquipment.add("hand", entityHand);
+                }
+
+                if(((LivingEntity) entity).getEquipment().getHelmet() != null
+                        && ((LivingEntity) entity).getEquipment().getHelmet().getType() != Material.AIR)
+                {
+                    ItemStack helmet = ((LivingEntity) entity).getEquipment().getHelmet();
+
+                    entityHelmet.addProperty("item", helmet.getData().getItemType().toString());
+
+                    if(helmet.hasItemMeta())
+                    {
+                        if(helmet.getItemMeta().hasDisplayName())
+                            entityHelmet.addProperty("name", helmet.getItemMeta().getDisplayName());
+
+                        if(helmet.getItemMeta().hasEnchants())
+                        {
+                            for(Enchantment enchantment : helmet.getItemMeta().getEnchants().keySet())
+                            {
+                                entityHelmetEnchants.addProperty("name", enchantment.getName());
+                                entityHelmetEnchants.addProperty("level", helmet.getItemMeta().getEnchantLevel(enchantment));
+                            }
+
+                            entityHelmet.add("enchantments", entityHelmetEnchants);
+                        }
+                    }
+
+                    entityHelmet.addProperty("durability", helmet.getDurability());
+                    entityEquipment.add("helmet", entityHelmet);
+                }
+
+                if(((LivingEntity) entity).getEquipment().getChestplate() != null
+                        && ((LivingEntity) entity).getEquipment().getChestplate().getType() != Material.AIR)
+                {
+                    ItemStack chestplate = ((LivingEntity) entity).getEquipment().getChestplate();
+
+                    entityChestplate.addProperty("item", chestplate.getData().getItemType().toString());
+
+                    if(chestplate.hasItemMeta())
+                    {
+                        if(chestplate.getItemMeta().hasDisplayName())
+                            entityChestplate.addProperty("name", chestplate.getItemMeta().getDisplayName());
+
+                        if(chestplate.getItemMeta().hasEnchants())
+                        {
+                            for(Enchantment enchantment : chestplate.getItemMeta().getEnchants().keySet())
+                            {
+                                entityChestplateEnchants.addProperty("name", enchantment.getName());
+                                entityChestplateEnchants.addProperty("level", chestplate.getItemMeta().getEnchantLevel(enchantment));
+                            }
+
+                            entityChestplate.add("enchantments", entityChestplateEnchants);
+                        }
+                    }
+
+                    entityChestplate.addProperty("durability", chestplate.getDurability());
+                    entityEquipment.add("chestplate", entityChestplate);
+                }
+
+                if(((LivingEntity) entity).getEquipment().getLeggings() != null
+                        && ((LivingEntity) entity).getEquipment().getLeggings().getType() != Material.AIR)
+                {
+                    ItemStack leggings = ((LivingEntity) entity).getEquipment().getLeggings();
+
+                    entityLeggings.addProperty("item", leggings.getData().getItemType().toString());
+
+                    if(leggings.hasItemMeta())
+                    {
+                        if(leggings.getItemMeta().hasDisplayName())
+                            entityLeggings.addProperty("name", leggings.getItemMeta().getDisplayName());
+
+                        if(leggings.getItemMeta().hasEnchants())
+                        {
+                            for(Enchantment enchantment : leggings.getItemMeta().getEnchants().keySet())
+                            {
+                                entityLeggingsEnchants.addProperty("name", enchantment.getName());
+                                entityLeggingsEnchants.addProperty("level", leggings.getItemMeta().getEnchantLevel(enchantment));
+                            }
+
+                            entityLeggings.add("enchantments", entityLeggingsEnchants);
+                        }
+                    }
+
+                    entityLeggings.addProperty("durability", leggings.getDurability());
+                    entityEquipment.add("leggings", entityLeggings);
+                }
+
+                if(((LivingEntity) entity).getEquipment().getBoots() != null
+                        && ((LivingEntity) entity).getEquipment().getBoots().getType() != Material.AIR)
+                {
+                    ItemStack boots = ((LivingEntity) entity).getEquipment().getBoots();
+
+                    entityBoots.addProperty("item", boots.getData().getItemType().toString());
+
+                    if(boots.hasItemMeta())
+                    {
+                        if(boots.getItemMeta().hasDisplayName())
+                            entityBoots.addProperty("name", boots.getItemMeta().getDisplayName());
+
+                        if(boots.getItemMeta().hasEnchants())
+                        {
+                            for(Enchantment enchantment : boots.getItemMeta().getEnchants().keySet())
+                            {
+                                entityBootsEnchants.addProperty("name", enchantment.getName());
+                                entityBootsEnchants.addProperty("level", boots.getItemMeta().getEnchantLevel(enchantment));
+                            }
+
+                            entityBoots.add("enchantments", entityBootsEnchants);
+                        }
+                    }
+
+                    entityBoots.addProperty("durability", boots.getDurability());
+                    entityEquipment.add("boots", entityBoots);
+                }
+            }
+
+            return gson.toJson(obj);
+        }
+
+        return Utils.getEntityName(entity)
                 + " {Coordinates:{X=" + entity.getLocation().getX()
                 + ", Y=" + entity.getLocation().getY()
                 + ", Z=" + entity.getLocation().getZ()
@@ -224,12 +450,32 @@ public final class PvPLoggerListener implements Listener
                 + ", World=" + entity.getLocation().getWorld().getName()
                 + (entity instanceof Player ? ", Flying=" + ((Player) entity).isFlying()
                 +  ", GameMode=" + ((Player) entity).getGameMode() : "")
-                + ", EntityType=" + entity.getType()
+                + ", Type=" + entity.getType()
                 + "}";
     }
 
     public String getLavaInfo(Entity entity)
     {
+        if(PvPLogger.storageType == PvPLogger.JSON)
+        {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            JsonObject obj = new JsonObject();
+            JsonObject entityObj = new JsonObject();
+            JsonObject entityCoords = new JsonObject();
+
+            obj.add("Lava", entityObj);
+
+            entityObj.addProperty("name", "Lava");
+            entityObj.addProperty("world", entity.getWorld().getName());
+            entityObj.add("coordinates", entityCoords);
+
+            entityCoords.addProperty("x", entity.getLocation().getX());
+            entityCoords.addProperty("y", entity.getLocation().getY());
+            entityCoords.addProperty("z", entity.getLocation().getZ());
+
+            return gson.toJson(obj);
+        }
+
         return "Lava"
                 + " {Coordinates:{X=" + entity.getLocation().getBlockX()
                 + ", Y=" + entity.getLocation().getBlockY()

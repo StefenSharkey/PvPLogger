@@ -3,14 +3,17 @@ package com.stefensharkey.pvplogger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 
 public class PvPLogger extends JavaPlugin
 {
-    public static boolean DEBUG_MODE = false;
+    public static boolean debugMode = false;
+    public static int storageType = 0;
+
+    public static final int FLATFILE = 0;
+    public static final int JSON = 1;
 
     @Override
     public void onEnable()
@@ -18,8 +21,7 @@ public class PvPLogger extends JavaPlugin
         if(!new File(getDataFolder() + File.separator + "config.yml").exists())
             saveDefaultConfig();
 
-        getDebugMode();
-
+        loadCustomConfig();
         getServer().getPluginManager().registerEvents(new PvPLoggerListener(this), this);
     }
 
@@ -36,15 +38,29 @@ public class PvPLogger extends JavaPlugin
             if(args[0].equalsIgnoreCase("reload") && sender.hasPermission("pvplogger.reload"))
             {
                 reloadConfig();
-                getDebugMode();
+                loadCustomConfig();
+
                 sender.sendMessage(ChatColor.DARK_RED + "PvPLogger has been reloaded!");
             }
 
         return false;
     }
 
-    public boolean getDebugMode()
+    public void loadCustomConfig()
     {
-        return DEBUG_MODE = getConfig().getBoolean("debug");
+        debugMode = getConfig().getBoolean("debug");
+
+        switch(getConfig().getString("output-format").toLowerCase())
+        {
+            case "flatfile":
+                storageType = FLATFILE;
+                break;
+            case "json":
+                storageType = JSON;
+                break;
+            default:
+                storageType = FLATFILE;
+                break;
+        }
     }
 }
