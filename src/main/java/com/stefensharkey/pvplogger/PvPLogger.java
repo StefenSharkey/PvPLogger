@@ -27,10 +27,11 @@ import java.io.File;
 
 public class PvPLogger extends JavaPlugin {
 
-  public static final int FLATFILE = 0;
-  public static final int JSON = 1;
-  public static boolean debugMode = false;
+  public static final int JSON = 0;
+
   public static int storageType = 0;
+
+  public static boolean debugMode = false;
 
   public static Plugin plugin;
 
@@ -69,14 +70,11 @@ public class PvPLogger extends JavaPlugin {
     debugMode = getConfig().getBoolean("debug");
 
     switch (getConfig().getString("output-format").toLowerCase()) {
-      case "flatfile":
-        storageType = FLATFILE;
-        break;
       case "json":
         storageType = JSON;
         break;
       default:
-        storageType = FLATFILE;
+        storageType = JSON;
         break;
     }
   }

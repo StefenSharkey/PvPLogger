@@ -181,318 +181,264 @@ public final class PvPLoggerListener implements Listener {
   }
 
   public String getEntityInfo(Block block) {
-    if (PvPLogger.storageType == PvPLogger.JSON) {
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      JsonObject obj = new JsonObject();
-      JsonObject blockObj = new JsonObject();
-      JsonObject blockCoords = new JsonObject();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    JsonObject obj = new JsonObject();
+    JsonObject blockObj = new JsonObject();
+    JsonObject blockCoords = new JsonObject();
 
-      obj.add(block.toString(), blockObj);
+    obj.add(block.toString(), blockObj);
 
-      blockObj.addProperty("name", block.toString());
-      blockObj.addProperty("world", block.getWorld().getName());
-      blockObj.add("coordinates", blockCoords);
+    blockObj.addProperty("name", block.toString());
+    blockObj.addProperty("world", block.getWorld().getName());
+    blockObj.add("coordinates", blockCoords);
 
-      blockCoords.addProperty("x", block.getX());
-      blockCoords.addProperty("y", block.getY());
-      blockCoords.addProperty("z", block.getZ());
+    blockCoords.addProperty("x", block.getX());
+    blockCoords.addProperty("y", block.getY());
+    blockCoords.addProperty("z", block.getZ());
 
-      return gson.toJson(obj);
-    }
-
-    return block
-           + " (" + block.getType()
-           + ") {Coordinates:{X=" + block.getX()
-           + ", Y=" + block.getY()
-           + ", Z=" + block.getZ()
-           + "}, World=" + block.getLocation().getWorld().getName() + "}";
+    return gson.toJson(obj);
   }
 
   public String getEntityInfo(EntityDamageEvent event, Entity entity) {
-    if (PvPLogger.storageType == PvPLogger.JSON) {
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      JsonObject obj = new JsonObject();
-      JsonObject entityObj = new JsonObject();
-      JsonObject entityCoords = new JsonObject();
-      JsonObject entityOrientation = new JsonObject();
-      JsonObject entityEquipment = new JsonObject();
-      JsonObject entityHand = new JsonObject();
-      JsonArray entityHandEnchants = new JsonArray();
-      JsonObject entityHelmet = new JsonObject();
-      JsonArray entityHelmetEnchants = new JsonArray();
-      JsonObject entityChestplate = new JsonObject();
-      JsonArray entityChestplateEnchants = new JsonArray();
-      JsonObject entityLeggings = new JsonObject();
-      JsonArray entityLeggingsEnchants = new JsonArray();
-      JsonObject entityBoots = new JsonObject();
-      JsonArray entityBootsEnchants = new JsonArray();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    JsonObject obj = new JsonObject();
+    JsonObject entityObj = new JsonObject();
+    JsonObject entityCoords = new JsonObject();
+    JsonObject entityOrientation = new JsonObject();
+    JsonObject entityEquipment = new JsonObject();
+    JsonObject entityHand = new JsonObject();
+    JsonArray entityHandEnchants = new JsonArray();
+    JsonObject entityHelmet = new JsonObject();
+    JsonArray entityHelmetEnchants = new JsonArray();
+    JsonObject entityChestplate = new JsonObject();
+    JsonArray entityChestplateEnchants = new JsonArray();
+    JsonObject entityLeggings = new JsonObject();
+    JsonArray entityLeggingsEnchants = new JsonArray();
+    JsonObject entityBoots = new JsonObject();
+    JsonArray entityBootsEnchants = new JsonArray();
 
-      if (entity instanceof Projectile) {
-        if (((Projectile) entity).getShooter() instanceof LivingEntity) {
-          entity = (Entity) ((Projectile) entity).getShooter();
-        }
+    if (entity instanceof Projectile) {
+      if (((Projectile) entity).getShooter() instanceof LivingEntity) {
+        entity = (Entity) ((Projectile) entity).getShooter();
       }
-
-      obj.add(Utils.getEntityName(entity), entityObj);
-
-      entityObj.addProperty("name", Utils.getEntityName(entity));
-      entityObj.addProperty("uuid", entity.getUniqueId().toString());
-      entityObj.addProperty("type", entity.getType().toString());
-      entityObj.addProperty("world", entity.getWorld().getName());
-
-      if (entity instanceof LivingEntity) {
-        entityObj.addProperty("health", (event.getEntity() == entity
-                                         ? ((LivingEntity) entity).getHealth() - event.getDamage()
-                                         : ((LivingEntity) entity).getHealth()));
-        entityObj.addProperty("dead", event.getEntity() == entity
-                                      && ((LivingEntity) entity).getHealth() - event.getDamage() <= 0);
-      }
-
-      if (entity instanceof Player) {
-        entityObj.addProperty("hunger", ((Player) entity).getFoodLevel());
-        entityObj.addProperty("gamemode", ((Player) entity).getGameMode().toString());
-        entityObj.addProperty("flying", ((Player) entity).isFlying());
-      }
-
-      entityObj.add("coordinates", entityCoords);
-      entityObj.add("orientation", entityOrientation);
-
-      if (entity instanceof LivingEntity) {
-        entityObj.add("equipment", entityEquipment);
-      }
-
-      if (entity instanceof Projectile) {
-        if (((Projectile) entity).getShooter() instanceof LivingEntity) {
-          entityCoords.addProperty("x", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getX());
-          entityCoords.addProperty("y", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getY());
-          entityCoords.addProperty("z", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getZ());
-        } else if (((Projectile) entity).getShooter() instanceof BlockProjectileSource) {
-          entityCoords
-              .addProperty("x", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getX());
-          entityCoords
-              .addProperty("y", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getY());
-          entityCoords
-              .addProperty("z", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getZ());
-        }
-      } else {
-        entityCoords.addProperty("x", entity.getLocation().getX());
-        entityCoords.addProperty("y", entity.getLocation().getY());
-        entityCoords.addProperty("z", entity.getLocation().getZ());
-      }
-
-      entityOrientation.addProperty("yaw", entity.getLocation().getYaw());
-      entityOrientation.addProperty("pitch", entity.getLocation().getPitch());
-      entityOrientation.addProperty("direction", Utils.getDirection(entity));
-
-      if (entity instanceof LivingEntity) {
-        if (((LivingEntity) entity).getEquipment().getItemInHand() != null) {
-          ItemStack hand = ((LivingEntity) entity).getEquipment().getItemInHand();
-
-          entityHand.addProperty("item", hand.getData().getItemType().toString());
-
-          if (hand.hasItemMeta()) {
-            if (hand.getItemMeta().hasDisplayName()) {
-              entityHand.addProperty("name", hand.getItemMeta().getDisplayName());
-            }
-
-            if (hand.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : hand.getItemMeta().getEnchants().entrySet()) {
-                JsonObject entityHandEnchant = new JsonObject();
-
-                entityHandEnchants.add(entityHandEnchant);
-
-                entityHandEnchant.addProperty("name", enchantment.getKey().getName());
-                entityHandEnchant.addProperty("level", enchantment.getValue());
-              }
-
-              entityHand.add("enchantments", entityHandEnchants);
-            }
-          }
-
-          entityHand.addProperty("durability", hand.getDurability());
-          entityEquipment.add("hand", entityHand);
-        }
-
-        if (((LivingEntity) entity).getEquipment().getHelmet() != null
-            && ((LivingEntity) entity).getEquipment().getHelmet().getType() != Material.AIR) {
-          ItemStack helmet = ((LivingEntity) entity).getEquipment().getHelmet();
-
-          entityHelmet.addProperty("item", helmet.getData().getItemType().toString());
-
-          if (helmet.hasItemMeta()) {
-            if (helmet.getItemMeta().hasDisplayName()) {
-              entityHelmet.addProperty("name", helmet.getItemMeta().getDisplayName());
-            }
-
-            if (helmet.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : helmet.getItemMeta().getEnchants().entrySet()) {
-                JsonObject entityHelmetEnchant = new JsonObject();
-
-                entityHelmetEnchants.add(entityHelmetEnchant);
-
-                entityHelmetEnchant.addProperty("name", enchantment.getKey().getName());
-                entityHelmetEnchant.addProperty("level", enchantment.getValue());
-              }
-
-              entityHelmet.add("enchantments", entityHelmetEnchants);
-            }
-          }
-
-          entityHelmet.addProperty("durability", helmet.getDurability());
-          entityEquipment.add("helmet", entityHelmet);
-        }
-
-        if (((LivingEntity) entity).getEquipment().getChestplate() != null
-            && ((LivingEntity) entity).getEquipment().getChestplate().getType() != Material.AIR) {
-          ItemStack chestplate = ((LivingEntity) entity).getEquipment().getChestplate();
-
-          entityChestplate.addProperty("item", chestplate.getData().getItemType().toString());
-
-          if (chestplate.hasItemMeta()) {
-            if (chestplate.getItemMeta().hasDisplayName()) {
-              entityChestplate.addProperty("name", chestplate.getItemMeta().getDisplayName());
-            }
-
-            if (chestplate.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : chestplate.getItemMeta().getEnchants().entrySet()) {
-                JsonObject entityChestplateEnchant = new JsonObject();
-
-                entityChestplateEnchants.add(entityChestplateEnchant);
-
-                entityChestplateEnchant.addProperty("name", enchantment.getKey().getName());
-                entityChestplateEnchant.addProperty("level", enchantment.getValue());
-              }
-
-              entityChestplate.add("enchantments", entityBootsEnchants);
-            }
-          }
-
-          entityChestplate.addProperty("durability", chestplate.getDurability());
-          entityEquipment.add("chestplate", entityChestplate);
-        }
-
-        if (((LivingEntity) entity).getEquipment().getLeggings() != null
-            && ((LivingEntity) entity).getEquipment().getLeggings().getType() != Material.AIR) {
-          ItemStack leggings = ((LivingEntity) entity).getEquipment().getLeggings();
-
-          entityLeggings.addProperty("item", leggings.getData().getItemType().toString());
-
-          if (leggings.hasItemMeta()) {
-            if (leggings.getItemMeta().hasDisplayName()) {
-              entityLeggings.addProperty("name", leggings.getItemMeta().getDisplayName());
-            }
-
-            if (leggings.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : leggings.getItemMeta().getEnchants().entrySet()) {
-                JsonObject entityLeggingsEnchant = new JsonObject();
-
-                entityLeggingsEnchants.add(entityLeggingsEnchant);
-
-                entityLeggingsEnchant.addProperty("name", enchantment.getKey().getName());
-                entityLeggingsEnchant.addProperty("level", enchantment.getValue());
-              }
-
-              entityLeggings.add("enchantments", entityLeggingsEnchants);
-            }
-          }
-
-          entityLeggings.addProperty("durability", leggings.getDurability());
-          entityEquipment.add("leggings", entityLeggings);
-        }
-
-        if (((LivingEntity) entity).getEquipment().getBoots() != null
-            && ((LivingEntity) entity).getEquipment().getBoots().getType() != Material.AIR) {
-          ItemStack boots = ((LivingEntity) entity).getEquipment().getBoots();
-
-          entityBoots.addProperty("item", boots.getData().getItemType().toString());
-
-          if (boots.hasItemMeta()) {
-            if (boots.getItemMeta().hasDisplayName()) {
-              entityBoots.addProperty("name", boots.getItemMeta().getDisplayName());
-            }
-
-            if (boots.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : boots.getItemMeta().getEnchants().entrySet()) {
-                JsonObject entityBootsEnchant = new JsonObject();
-
-                entityBootsEnchants.add(entityBootsEnchant);
-
-                entityBootsEnchant.addProperty("name", enchantment.getKey().getName());
-                entityBootsEnchant.addProperty("level", enchantment.getValue());
-              }
-
-              entityBoots.add("enchantments", entityBootsEnchants);
-            }
-          }
-
-          entityBoots.addProperty("durability", boots.getDurability());
-          entityEquipment.add("boots", entityBoots);
-        }
-      }
-
-      return gson.toJson(obj);
     }
 
-    return Utils.getEntityName(entity)
-           + " {Coordinates:{X=" + entity.getLocation().getX()
-           + ", Y=" + entity.getLocation().getY()
-           + ", Z=" + entity.getLocation().getZ()
-           + "}, Orientation:{Yaw=" + entity.getLocation().getYaw()
-           + ", Pitch=" + entity.getLocation().getPitch()
-           + ", Direction=" + Utils.getDirection(entity)
-           + (entity instanceof LivingEntity ?
-              "}, Equipment:{Hand=" + ((LivingEntity) entity).getEquipment().getItemInHand()
-              + (
-                  ((LivingEntity) entity).getEquipment().getHelmet() != null
-                  && ((LivingEntity) entity).getEquipment().getHelmet().getType() != Material.AIR ?
-                  ", Helmet=" + ((LivingEntity) entity).getEquipment().getHelmet() : "")
-              + (
-                  ((LivingEntity) entity).getEquipment().getChestplate() != null
-                  && ((LivingEntity) entity).getEquipment().getChestplate().getType() != Material.AIR ?
-                  ", Chestplate=" + ((LivingEntity) entity).getEquipment().getChestplate() : "")
-              + (
-                  ((LivingEntity) entity).getEquipment().getLeggings() != null
-                  && ((LivingEntity) entity).getEquipment().getLeggings().getType() != Material.AIR ?
-                  ", Leggings=" + ((LivingEntity) entity).getEquipment().getLeggings() : "")
-              + (
-                  ((LivingEntity) entity).getEquipment().getBoots() != null
-                  && ((LivingEntity) entity).getEquipment().getBoots().getType() != Material.AIR ?
-                  ", Boots=" + ((LivingEntity) entity).getEquipment().getBoots() : "")
-              + (
-                  ((LivingEntity) entity).getActivePotionEffects().size() > 0 ?
-                  "}, Effects:{" + ((LivingEntity) entity).getActivePotionEffects() : "")
-              + "}, Health=" + (((LivingEntity) entity).getHealth() - event.getDamage()) : "}")
-           + ", World=" + entity.getLocation().getWorld().getName()
-           + (entity instanceof Player ?
-              ", Flying=" + ((Player) entity).isFlying() + ", GameMode=" + ((Player) entity).getGameMode() : "")
-           + ", Type=" + entity.getType()
-           + "}";
+    obj.add(Utils.getEntityName(entity), entityObj);
+
+    entityObj.addProperty("name", Utils.getEntityName(entity));
+    entityObj.addProperty("uuid", entity.getUniqueId().toString());
+    entityObj.addProperty("type", entity.getType().toString());
+    entityObj.addProperty("world", entity.getWorld().getName());
+
+    if (entity instanceof LivingEntity) {
+      entityObj.addProperty("health", (event.getEntity() == entity
+                                       ? ((LivingEntity) entity).getHealth() - event.getDamage()
+                                       : ((LivingEntity) entity).getHealth()));
+      entityObj.addProperty("dead", event.getEntity() == entity
+                                    && ((LivingEntity) entity).getHealth() - event.getDamage() <= 0);
+    }
+
+    if (entity instanceof Player) {
+      entityObj.addProperty("hunger", ((Player) entity).getFoodLevel());
+      entityObj.addProperty("gamemode", ((Player) entity).getGameMode().toString());
+      entityObj.addProperty("flying", ((Player) entity).isFlying());
+    }
+
+    entityObj.add("coordinates", entityCoords);
+    entityObj.add("orientation", entityOrientation);
+
+    if (entity instanceof LivingEntity) {
+      entityObj.add("equipment", entityEquipment);
+    }
+
+    if (entity instanceof Projectile) {
+      if (((Projectile) entity).getShooter() instanceof LivingEntity) {
+        entityCoords.addProperty("x", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getX());
+        entityCoords.addProperty("y", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getY());
+        entityCoords.addProperty("z", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getZ());
+      } else if (((Projectile) entity).getShooter() instanceof BlockProjectileSource) {
+        entityCoords
+            .addProperty("x", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getX());
+        entityCoords
+            .addProperty("y", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getY());
+        entityCoords
+            .addProperty("z", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getZ());
+      }
+    } else {
+      entityCoords.addProperty("x", entity.getLocation().getX());
+      entityCoords.addProperty("y", entity.getLocation().getY());
+      entityCoords.addProperty("z", entity.getLocation().getZ());
+    }
+
+    entityOrientation.addProperty("yaw", entity.getLocation().getYaw());
+    entityOrientation.addProperty("pitch", entity.getLocation().getPitch());
+    entityOrientation.addProperty("direction", Utils.getDirection(entity));
+
+    if (entity instanceof LivingEntity) {
+      if (((LivingEntity) entity).getEquipment().getItemInHand() != null) {
+        ItemStack hand = ((LivingEntity) entity).getEquipment().getItemInHand();
+
+        entityHand.addProperty("item", hand.getData().getItemType().toString());
+
+        if (hand.hasItemMeta()) {
+          if (hand.getItemMeta().hasDisplayName()) {
+            entityHand.addProperty("name", hand.getItemMeta().getDisplayName());
+          }
+
+          if (hand.getItemMeta().hasEnchants()) {
+            for (Map.Entry<Enchantment, Integer> enchantment : hand.getItemMeta().getEnchants().entrySet()) {
+              JsonObject entityHandEnchant = new JsonObject();
+
+              entityHandEnchants.add(entityHandEnchant);
+
+              entityHandEnchant.addProperty("name", enchantment.getKey().getName());
+              entityHandEnchant.addProperty("level", enchantment.getValue());
+            }
+
+            entityHand.add("enchantments", entityHandEnchants);
+          }
+        }
+
+        entityHand.addProperty("durability", hand.getDurability());
+        entityEquipment.add("hand", entityHand);
+      }
+
+      if (((LivingEntity) entity).getEquipment().getHelmet() != null
+          && ((LivingEntity) entity).getEquipment().getHelmet().getType() != Material.AIR) {
+        ItemStack helmet = ((LivingEntity) entity).getEquipment().getHelmet();
+
+        entityHelmet.addProperty("item", helmet.getData().getItemType().toString());
+
+        if (helmet.hasItemMeta()) {
+          if (helmet.getItemMeta().hasDisplayName()) {
+            entityHelmet.addProperty("name", helmet.getItemMeta().getDisplayName());
+          }
+
+          if (helmet.getItemMeta().hasEnchants()) {
+            for (Map.Entry<Enchantment, Integer> enchantment : helmet.getItemMeta().getEnchants().entrySet()) {
+              JsonObject entityHelmetEnchant = new JsonObject();
+
+              entityHelmetEnchants.add(entityHelmetEnchant);
+
+              entityHelmetEnchant.addProperty("name", enchantment.getKey().getName());
+              entityHelmetEnchant.addProperty("level", enchantment.getValue());
+            }
+
+            entityHelmet.add("enchantments", entityHelmetEnchants);
+          }
+        }
+
+        entityHelmet.addProperty("durability", helmet.getDurability());
+        entityEquipment.add("helmet", entityHelmet);
+      }
+
+      if (((LivingEntity) entity).getEquipment().getChestplate() != null
+          && ((LivingEntity) entity).getEquipment().getChestplate().getType() != Material.AIR) {
+        ItemStack chestplate = ((LivingEntity) entity).getEquipment().getChestplate();
+
+        entityChestplate.addProperty("item", chestplate.getData().getItemType().toString());
+
+        if (chestplate.hasItemMeta()) {
+          if (chestplate.getItemMeta().hasDisplayName()) {
+            entityChestplate.addProperty("name", chestplate.getItemMeta().getDisplayName());
+          }
+
+          if (chestplate.getItemMeta().hasEnchants()) {
+            for (Map.Entry<Enchantment, Integer> enchantment : chestplate.getItemMeta().getEnchants().entrySet()) {
+              JsonObject entityChestplateEnchant = new JsonObject();
+
+              entityChestplateEnchants.add(entityChestplateEnchant);
+
+              entityChestplateEnchant.addProperty("name", enchantment.getKey().getName());
+              entityChestplateEnchant.addProperty("level", enchantment.getValue());
+            }
+
+            entityChestplate.add("enchantments", entityBootsEnchants);
+          }
+        }
+
+        entityChestplate.addProperty("durability", chestplate.getDurability());
+        entityEquipment.add("chestplate", entityChestplate);
+      }
+
+      if (((LivingEntity) entity).getEquipment().getLeggings() != null
+          && ((LivingEntity) entity).getEquipment().getLeggings().getType() != Material.AIR) {
+        ItemStack leggings = ((LivingEntity) entity).getEquipment().getLeggings();
+
+        entityLeggings.addProperty("item", leggings.getData().getItemType().toString());
+
+        if (leggings.hasItemMeta()) {
+          if (leggings.getItemMeta().hasDisplayName()) {
+            entityLeggings.addProperty("name", leggings.getItemMeta().getDisplayName());
+          }
+
+          if (leggings.getItemMeta().hasEnchants()) {
+            for (Map.Entry<Enchantment, Integer> enchantment : leggings.getItemMeta().getEnchants().entrySet()) {
+              JsonObject entityLeggingsEnchant = new JsonObject();
+
+              entityLeggingsEnchants.add(entityLeggingsEnchant);
+
+              entityLeggingsEnchant.addProperty("name", enchantment.getKey().getName());
+              entityLeggingsEnchant.addProperty("level", enchantment.getValue());
+            }
+
+            entityLeggings.add("enchantments", entityLeggingsEnchants);
+          }
+        }
+
+        entityLeggings.addProperty("durability", leggings.getDurability());
+        entityEquipment.add("leggings", entityLeggings);
+      }
+
+      if (((LivingEntity) entity).getEquipment().getBoots() != null
+          && ((LivingEntity) entity).getEquipment().getBoots().getType() != Material.AIR) {
+        ItemStack boots = ((LivingEntity) entity).getEquipment().getBoots();
+
+        entityBoots.addProperty("item", boots.getData().getItemType().toString());
+
+        if (boots.hasItemMeta()) {
+          if (boots.getItemMeta().hasDisplayName()) {
+            entityBoots.addProperty("name", boots.getItemMeta().getDisplayName());
+          }
+
+          if (boots.getItemMeta().hasEnchants()) {
+            for (Map.Entry<Enchantment, Integer> enchantment : boots.getItemMeta().getEnchants().entrySet()) {
+              JsonObject entityBootsEnchant = new JsonObject();
+
+              entityBootsEnchants.add(entityBootsEnchant);
+
+              entityBootsEnchant.addProperty("name", enchantment.getKey().getName());
+              entityBootsEnchant.addProperty("level", enchantment.getValue());
+            }
+
+            entityBoots.add("enchantments", entityBootsEnchants);
+          }
+        }
+
+        entityBoots.addProperty("durability", boots.getDurability());
+        entityEquipment.add("boots", entityBoots);
+      }
+    }
+
+    return gson.toJson(obj);
   }
 
   public String getLavaInfo(Entity entity) {
-    if (PvPLogger.storageType == PvPLogger.JSON) {
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      JsonObject obj = new JsonObject();
-      JsonObject entityObj = new JsonObject();
-      JsonObject entityCoords = new JsonObject();
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    JsonObject obj = new JsonObject();
+    JsonObject entityObj = new JsonObject();
+    JsonObject entityCoords = new JsonObject();
 
-      obj.add("Lava", entityObj);
+    obj.add("Lava", entityObj);
 
-      entityObj.addProperty("name", "Lava");
-      entityObj.addProperty("world", entity.getWorld().getName());
-      entityObj.add("coordinates", entityCoords);
+    entityObj.addProperty("name", "Lava");
+    entityObj.addProperty("world", entity.getWorld().getName());
+    entityObj.add("coordinates", entityCoords);
 
-      entityCoords.addProperty("x", entity.getLocation().getBlockX());
-      entityCoords.addProperty("y", entity.getLocation().getBlockY());
-      entityCoords.addProperty("z", entity.getLocation().getBlockZ());
+    entityCoords.addProperty("x", entity.getLocation().getBlockX());
+    entityCoords.addProperty("y", entity.getLocation().getBlockY());
+    entityCoords.addProperty("z", entity.getLocation().getBlockZ());
 
-      return gson.toJson(obj);
-    }
-
-    return "Lava"
-           + " {Coordinates:{X=" + entity.getLocation().getBlockX()
-           + ", Y=" + entity.getLocation().getBlockY()
-           + ", Z=" + entity.getLocation().getBlockZ()
-           + "}, World=" + entity.getLocation().getWorld().getName() + "}";
+    return gson.toJson(obj);
   }
 }
