@@ -21,6 +21,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.projectiles.BlockProjectileSource;
 
 public class Utils {
 
@@ -58,9 +59,17 @@ public class Utils {
   }
 
   public static String getEntityName(Entity entity) {
-    if (entity instanceof Player) {
-      return ((Player) entity).getName();
+    if (entity instanceof LivingEntity) {
+      if (entity instanceof Player) {
+        return ((Player) entity).getName();
+      }
+
+      return ((LivingEntity) entity).getCustomName();
     } else if (entity instanceof Projectile) {
+      if (((Projectile) entity).getShooter() instanceof BlockProjectileSource) {
+        return ((BlockProjectileSource) ((Projectile) entity).getShooter()).getBlock().getType().name();
+      }
+
       return ((Projectile) entity).getShooter().toString();
     }
 

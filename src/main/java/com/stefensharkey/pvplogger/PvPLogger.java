@@ -20,6 +20,7 @@ package com.stefensharkey.pvplogger;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -31,14 +32,19 @@ public class PvPLogger extends JavaPlugin {
   public static boolean debugMode = false;
   public static int storageType = 0;
 
+  public static Plugin plugin;
+
   @Override
   public void onEnable() {
     if (!new File(getDataFolder() + File.separator + "config.yml").exists()) {
       saveDefaultConfig();
     }
 
+    plugin = this;
+
     loadCustomConfig();
-    getServer().getPluginManager().registerEvents(new PvPLoggerListener(this), this);
+
+    getServer().getPluginManager().registerEvents(new PvPLoggerListener(), this);
   }
 
   @Override

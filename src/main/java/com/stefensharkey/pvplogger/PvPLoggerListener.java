@@ -37,7 +37,7 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.projectiles.BlockProjectileSource;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -49,12 +49,6 @@ import java.util.Map;
 
 public final class PvPLoggerListener implements Listener {
 
-  private final Plugin plugin;
-
-  public PvPLoggerListener(Plugin plugin) {
-    this.plugin = plugin;
-  }
-
   @EventHandler(priority = EventPriority.LOWEST)
   @SuppressWarnings("unused")
   public void onEntityDamageEvent(final EntityDamageEvent event) {
@@ -63,11 +57,11 @@ public final class PvPLoggerListener implements Listener {
           && event.getCause() != EntityDamageEvent.DamageCause.MAGIC) {
         if (!event.getEventName().equals("EntityDamageByEntityEvent")) {
           if (PvPLogger.debugMode) {
-            plugin.getLogger().info("");
-            plugin.getLogger().info("onEntityDamageEvent()");
-            plugin.getLogger().info("Event Type: " + event.getEventName());
-            plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
-            plugin.getLogger().info("Cause: " + event.getCause());
+            PvPLogger.plugin.getLogger().info("");
+            PvPLogger.plugin.getLogger().info("onEntityDamageEvent()");
+            PvPLogger.plugin.getLogger().info("Event Type: " + event.getEventName());
+            PvPLogger.plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+            PvPLogger.plugin.getLogger().info("Cause: " + event.getCause());
           }
 
           logToFile(event, event.getEntity(), formatMessage(event));
@@ -77,23 +71,14 @@ public final class PvPLoggerListener implements Listener {
         logToFile(event, event.getEntity(), formatMessage(event));
       } else if (event.getCause() == EntityDamageEvent.DamageCause.MAGIC) {
         if (PvPLogger.debugMode) {
-          plugin.getLogger().info("");
-          plugin.getLogger().info("onEntityDamageEvent()");
-          plugin.getLogger().info("Event Type: " + event.getEventName());
-          plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
-          plugin.getLogger().info("Cause: " + event.getCause());
+          PvPLogger.plugin.getLogger().info("");
+          PvPLogger.plugin.getLogger().info("onEntityDamageEvent()");
+          PvPLogger.plugin.getLogger().info("Event Type: " + event.getEventName());
+          PvPLogger.plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
+          PvPLogger.plugin.getLogger().info("Cause: " + event.getCause());
         }
 
         logToFile(event, event.getEntity(), formatMessage(event));
-      }
-
-      if (PvPLogger.debugMode) {
-        plugin.getLogger().info("");
-        plugin.getLogger().info("Unlogged event! Contact the mod author! Posting details:");
-        plugin.getLogger().info("onEntityDamageEvent()");
-        plugin.getLogger().info("Event Type: " + event.getEventName());
-        plugin.getLogger().info("Entity: " + ((Player) event.getEntity()).getName());
-        plugin.getLogger().info("Cause: " + event.getCause());
       }
     }
   }
@@ -103,12 +88,12 @@ public final class PvPLoggerListener implements Listener {
   public void onEntityDamageByEntityEvent(final EntityDamageByEntityEvent event) {
     if (event.getDamager() instanceof Player) {
       if (PvPLogger.debugMode) {
-        plugin.getLogger().info("");
-        plugin.getLogger().info("onEntityDamageEvent()");
-        plugin.getLogger().info("Event Type: " + event.getEventName());
-        plugin.getLogger().info("Damager: " + ((Player) event.getDamager()).getName());
-        plugin.getLogger().info("Entity: " + event.getEntity());
-        plugin.getLogger().info("Cause: " + event.getCause());
+        PvPLogger.plugin.getLogger().info("");
+        PvPLogger.plugin.getLogger().info("onEntityDamageEvent()");
+        PvPLogger.plugin.getLogger().info("Event Type: " + event.getEventName());
+        PvPLogger.plugin.getLogger().info("Damager: " + ((Player) event.getDamager()).getName());
+        PvPLogger.plugin.getLogger().info("Entity: " + event.getEntity());
+        PvPLogger.plugin.getLogger().info("Cause: " + event.getCause());
       }
 
       logToFile(event, event.getEntity(), formatMessage(event));
@@ -120,17 +105,17 @@ public final class PvPLoggerListener implements Listener {
     SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
     if (event instanceof EntityDamageByBlockEvent) {
-      Block damager = ((EntityDamageByBlockEvent) event).getDamager();
+      Block block = ((EntityDamageByBlockEvent) event).getDamager();
       Entity entity = event.getEntity();
+
       double damage = event.getDamage();
       boolean isLava = event.getCause().equals(EntityDamageEvent.DamageCause.LAVA);
 
-      return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : damager)
+      return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : block)
              + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
-             + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId() + ") for " + damage
-             + " damage."
+             + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId() + ") for " + damage + " damage."
              + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
-             + "\n" + (isLava ? getLavaInfo(entity) : getEntityInfo(damager))
+             + "\n" + (isLava ? getLavaInfo(entity) : getEntityInfo(block))
              + "\n" + getEntityInfo(event, entity)
              + "\n";
     } else if (event instanceof EntityDamageByEntityEvent) {
@@ -138,13 +123,10 @@ public final class PvPLoggerListener implements Listener {
       Entity entity = event.getEntity();
       double damage = event.getDamage();
 
-      return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(damager) + " (UUID: "
-             + damager.getUniqueId()
+      return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(damager) + " (UUID: " + damager.getUniqueId()
              + ")" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
-             + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId() + ") with " + Utils
-          .getWeapon(damager)
-             + " for " + damage + " damage." + (PvPLogger.debugMode ? " (" + event.getEventName()
-                                                                      + ")" : "")
+             + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId() + ") with " + Utils.getWeapon(damager)
+             + " for " + damage + " damage." + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
              + "\n" + getEntityInfo(event, damager)
              + "\n" + getEntityInfo(event, entity)
              + "\n";
@@ -152,10 +134,8 @@ public final class PvPLoggerListener implements Listener {
       Entity entity = event.getEntity();
       double damage = event.getDamage();
 
-      return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(entity) + " (UUID: "
-             + entity.getUniqueId()
-             + ") was" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed "
-                                                                            : " damaged ") + "by "
+      return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId()
+             + ") was" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ") + "by "
              + event.getCause() + " for " + damage + " damage."
              + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
              + "\n" + getEntityInfo(event, entity)
@@ -166,7 +146,7 @@ public final class PvPLoggerListener implements Listener {
   }
 
   public void logToFile(EntityDamageEvent event, Entity entity, String message) {
-    File saveTo = new File(plugin.getDataFolder(), "userdata" + File.separator);
+    File saveTo = new File(PvPLogger.plugin.getDataFolder(), "userdata" + File.separator);
 
     FileWriter fileWriter;
     PrintWriter printWriter;
@@ -213,18 +193,18 @@ public final class PvPLoggerListener implements Listener {
       blockObj.addProperty("world", block.getWorld().getName());
       blockObj.add("coordinates", blockCoords);
 
-      blockCoords.addProperty("x", block.getLocation().getX());
-      blockCoords.addProperty("y", block.getLocation().getY());
-      blockCoords.addProperty("z", block.getLocation().getZ());
+      blockCoords.addProperty("x", block.getX());
+      blockCoords.addProperty("y", block.getY());
+      blockCoords.addProperty("z", block.getZ());
 
       return gson.toJson(obj);
     }
 
     return block
            + " (" + block.getType()
-           + ") {Coordinates:{X=" + block.getLocation().getBlockX()
-           + ", Y=" + block.getLocation().getBlockY()
-           + ", Z=" + block.getLocation().getBlockZ()
+           + ") {Coordinates:{X=" + block.getX()
+           + ", Y=" + block.getY()
+           + ", Z=" + block.getZ()
            + "}, World=" + block.getLocation().getWorld().getName() + "}";
   }
 
@@ -265,8 +245,7 @@ public final class PvPLoggerListener implements Listener {
                                          ? ((LivingEntity) entity).getHealth() - event.getDamage()
                                          : ((LivingEntity) entity).getHealth()));
         entityObj.addProperty("dead", event.getEntity() == entity
-                                      && ((LivingEntity) entity).getHealth() - event.getDamage()
-                                         <= 0);
+                                      && ((LivingEntity) entity).getHealth() - event.getDamage() <= 0);
       }
 
       if (entity instanceof Player) {
@@ -282,9 +261,24 @@ public final class PvPLoggerListener implements Listener {
         entityObj.add("equipment", entityEquipment);
       }
 
-      entityCoords.addProperty("x", entity.getLocation().getX());
-      entityCoords.addProperty("y", entity.getLocation().getY());
-      entityCoords.addProperty("z", entity.getLocation().getZ());
+      if (entity instanceof Projectile) {
+        if (((Projectile) entity).getShooter() instanceof LivingEntity) {
+          entityCoords.addProperty("x", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getX());
+          entityCoords.addProperty("y", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getY());
+          entityCoords.addProperty("z", ((LivingEntity) (((Projectile) entity).getShooter())).getLocation().getZ());
+        } else if (((Projectile) entity).getShooter() instanceof BlockProjectileSource) {
+          entityCoords
+              .addProperty("x", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getX());
+          entityCoords
+              .addProperty("y", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getY());
+          entityCoords
+              .addProperty("z", ((BlockProjectileSource) (((Projectile) entity).getShooter())).getBlock().getZ());
+        }
+      } else {
+        entityCoords.addProperty("x", entity.getLocation().getX());
+        entityCoords.addProperty("y", entity.getLocation().getY());
+        entityCoords.addProperty("z", entity.getLocation().getZ());
+      }
 
       entityOrientation.addProperty("yaw", entity.getLocation().getYaw());
       entityOrientation.addProperty("pitch", entity.getLocation().getPitch());
@@ -302,8 +296,7 @@ public final class PvPLoggerListener implements Listener {
             }
 
             if (hand.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : hand.getItemMeta().getEnchants()
-                  .entrySet()) {
+              for (Map.Entry<Enchantment, Integer> enchantment : hand.getItemMeta().getEnchants().entrySet()) {
                 JsonObject entityHandEnchant = new JsonObject();
 
                 entityHandEnchants.add(entityHandEnchant);
@@ -332,8 +325,7 @@ public final class PvPLoggerListener implements Listener {
             }
 
             if (helmet.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : helmet.getItemMeta().getEnchants()
-                  .entrySet()) {
+              for (Map.Entry<Enchantment, Integer> enchantment : helmet.getItemMeta().getEnchants().entrySet()) {
                 JsonObject entityHelmetEnchant = new JsonObject();
 
                 entityHelmetEnchants.add(entityHelmetEnchant);
@@ -362,8 +354,7 @@ public final class PvPLoggerListener implements Listener {
             }
 
             if (chestplate.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : chestplate.getItemMeta()
-                  .getEnchants().entrySet()) {
+              for (Map.Entry<Enchantment, Integer> enchantment : chestplate.getItemMeta().getEnchants().entrySet()) {
                 JsonObject entityChestplateEnchant = new JsonObject();
 
                 entityChestplateEnchants.add(entityChestplateEnchant);
@@ -392,8 +383,7 @@ public final class PvPLoggerListener implements Listener {
             }
 
             if (leggings.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : leggings.getItemMeta()
-                  .getEnchants().entrySet()) {
+              for (Map.Entry<Enchantment, Integer> enchantment : leggings.getItemMeta().getEnchants().entrySet()) {
                 JsonObject entityLeggingsEnchant = new JsonObject();
 
                 entityLeggingsEnchants.add(entityLeggingsEnchant);
@@ -422,8 +412,7 @@ public final class PvPLoggerListener implements Listener {
             }
 
             if (boots.getItemMeta().hasEnchants()) {
-              for (Map.Entry<Enchantment, Integer> enchantment : boots.getItemMeta().getEnchants()
-                  .entrySet()) {
+              for (Map.Entry<Enchantment, Integer> enchantment : boots.getItemMeta().getEnchants().entrySet()) {
                 JsonObject entityBootsEnchant = new JsonObject();
 
                 entityBootsEnchants.add(entityBootsEnchant);
@@ -493,9 +482,9 @@ public final class PvPLoggerListener implements Listener {
       entityObj.addProperty("world", entity.getWorld().getName());
       entityObj.add("coordinates", entityCoords);
 
-      entityCoords.addProperty("x", entity.getLocation().getX());
-      entityCoords.addProperty("y", entity.getLocation().getY());
-      entityCoords.addProperty("z", entity.getLocation().getZ());
+      entityCoords.addProperty("x", entity.getLocation().getBlockX());
+      entityCoords.addProperty("y", entity.getLocation().getBlockY());
+      entityCoords.addProperty("z", entity.getLocation().getBlockZ());
 
       return gson.toJson(obj);
     }
