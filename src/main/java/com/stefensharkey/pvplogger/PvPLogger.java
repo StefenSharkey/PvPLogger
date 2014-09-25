@@ -17,48 +17,40 @@
 
 package com.stefensharkey.pvplogger;
 
+import com.stefensharkey.pvplogger.configuration.Configuration;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-
 public class PvPLogger extends JavaPlugin {
 
-  public static final int JSON = 0;
-
-  public static int storageType = 0;
-
-  public static boolean debugMode = false;
+  private static Configuration config;
 
   public static Plugin plugin;
 
   @Override
   public void onEnable() {
-    if (!new File(getDataFolder() + File.separator + "config.yml").exists()) {
-      saveDefaultConfig();
-    }
 
     plugin = this;
 
-    loadCustomConfig();
+    config = new Configuration(plugin);
 
+    config.loadConfig();
     getServer().getPluginManager().registerEvents(new PvPLoggerListener(), this);
   }
 
   @Override
-  public void onDisable() {
-  }
+  public void onDisable() {}
 
   @Override
   public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
     if (args.length != 0) {
       if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("pvplogger.reload")) {
         reloadConfig();
-        loadCustomConfig();
-
+        config.loadConfig();
         sender.sendMessage(ChatColor.DARK_RED + "PvPLogger has been reloaded!");
       }
     }
@@ -66,16 +58,7 @@ public class PvPLogger extends JavaPlugin {
     return false;
   }
 
-  public void loadCustomConfig() {
-    debugMode = getConfig().getBoolean("debug");
-
-    switch (getConfig().getString("output-format").toLowerCase()) {
-      case "json":
-        storageType = JSON;
-        break;
-      default:
-        storageType = JSON;
-        break;
-    }
+  public static Configuration getConfiguration() {
+    return config;
   }
 }

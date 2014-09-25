@@ -22,6 +22,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+import com.stefensharkey.pvplogger.configuration.Configuration;
+import com.stefensharkey.pvplogger.configuration.StorageType;
+
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -50,6 +53,8 @@ import java.util.Map;
 
 public final class PvPLoggerListener implements Listener {
 
+  private Configuration config = PvPLogger.getConfiguration();
+
   @EventHandler(priority = EventPriority.LOWEST)
   @SuppressWarnings("unused")
   public void onEntityDamageEvent(final EntityDamageEvent event) {
@@ -57,7 +62,7 @@ public final class PvPLoggerListener implements Listener {
       if (event.getEntity().getType() != EntityType.SPLASH_POTION
           && event.getCause() != EntityDamageEvent.DamageCause.MAGIC) {
         if (!event.getEventName().equals("EntityDamageByEntityEvent")) {
-          if (PvPLogger.debugMode) {
+          if (config.getDebugMode()) {
             PvPLogger.plugin.getLogger().info("");
             PvPLogger.plugin.getLogger().info("onEntityDamageEvent()");
             PvPLogger.plugin.getLogger().info("Event Type: " + event.getEventName());
@@ -71,7 +76,7 @@ public final class PvPLoggerListener implements Listener {
 
         logToFile(event, event.getEntity(), formatMessage(event));
       } else if (event.getCause() == EntityDamageEvent.DamageCause.MAGIC) {
-        if (PvPLogger.debugMode) {
+        if (config.getDebugMode()) {
           PvPLogger.plugin.getLogger().info("");
           PvPLogger.plugin.getLogger().info("onEntityDamageEvent()");
           PvPLogger.plugin.getLogger().info("Event Type: " + event.getEventName());
@@ -88,7 +93,7 @@ public final class PvPLoggerListener implements Listener {
   @SuppressWarnings("unused")
   public void onEntityDamageByEntityEvent(final EntityDamageByEntityEvent event) {
     if (event.getDamager() instanceof Player) {
-      if (PvPLogger.debugMode) {
+      if (config.getDebugMode()) {
         PvPLogger.plugin.getLogger().info("");
         PvPLogger.plugin.getLogger().info("onEntityDamageEvent()");
         PvPLogger.plugin.getLogger().info("Event Type: " + event.getEventName());
@@ -115,7 +120,7 @@ public final class PvPLoggerListener implements Listener {
       return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : block)
              + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
              + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId() + ") for " + damage + " damage."
-             + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
+             + (config.getDebugMode() ? " (" + event.getEventName() + ")" : "")
              + "\n" + (isLava ? getLavaInfo(event, entity) : getEntityInfo(event, block))
              + "\n" + getEntityInfo(event, entity)
              + "\n";
@@ -127,7 +132,7 @@ public final class PvPLoggerListener implements Listener {
       return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(damager) + " (UUID: " + damager.getUniqueId()
              + ")" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
              + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId() + ") with " + Utils.getWeapon(damager)
-             + " for " + damage + " damage." + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
+             + " for " + damage + " damage." + (config.getDebugMode() ? " (" + event.getEventName() + ")" : "")
              + "\n" + getEntityInfo(event, damager)
              + "\n" + getEntityInfo(event, entity)
              + "\n";
@@ -138,7 +143,7 @@ public final class PvPLoggerListener implements Listener {
       return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId()
              + ") was" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ") + "by "
              + event.getCause() + " for " + damage + " damage."
-             + (PvPLogger.debugMode ? " (" + event.getEventName() + ")" : "")
+             + (config.getDebugMode() ? " (" + event.getEventName() + ")" : "")
              + "\n" + getEntityInfo(event, entity)
              + "\n";
     }
@@ -182,7 +187,7 @@ public final class PvPLoggerListener implements Listener {
   }
 
   public String getEntityInfo(Event event, Block block) {
-    if (PvPLogger.storageType == PvPLogger.JSON) {
+    if (config.getStorageType() == StorageType.JSON) {
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       JsonObject obj = new JsonObject();
       JsonObject blockObj = new JsonObject();
@@ -205,7 +210,7 @@ public final class PvPLoggerListener implements Listener {
   }
 
   public String getEntityInfo(EntityDamageEvent event, Entity entity) {
-    if (PvPLogger.storageType == PvPLogger.JSON) {
+    if (config.getStorageType() == StorageType.JSON) {
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       JsonObject obj = new JsonObject();
       JsonObject entityObj = new JsonObject();
@@ -433,7 +438,7 @@ public final class PvPLoggerListener implements Listener {
   }
 
   public String getLavaInfo(Event event, Entity entity) {
-    if (PvPLogger.storageType == PvPLogger.JSON) {
+    if (config.getStorageType() == StorageType.JSON) {
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       JsonObject obj = new JsonObject();
       JsonObject entityObj = new JsonObject();
