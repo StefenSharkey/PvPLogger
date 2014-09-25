@@ -108,7 +108,7 @@ public final class PvPLoggerListener implements Listener {
       Block block = ((EntityDamageByBlockEvent) event).getDamager();
       Entity entity = event.getEntity();
 
-      double damage = event.getDamage();
+      double damage = event.getFinalDamage();
       boolean isLava = event.getCause().equals(EntityDamageEvent.DamageCause.LAVA);
 
       return "[" + sdf.format(cal.getTime()) + "]: " + (isLava ? "Lava" : block)
@@ -121,7 +121,7 @@ public final class PvPLoggerListener implements Listener {
     } else if (event instanceof EntityDamageByEntityEvent) {
       Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
       Entity entity = event.getEntity();
-      double damage = event.getDamage();
+      double damage = event.getFinalDamage();
 
       return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(damager) + " (UUID: " + damager.getUniqueId()
              + ")" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ")
@@ -132,7 +132,7 @@ public final class PvPLoggerListener implements Listener {
              + "\n";
     } else if (event != null) {
       Entity entity = event.getEntity();
-      double damage = event.getDamage();
+      double damage = event.getFinalDamage();
 
       return "[" + sdf.format(cal.getTime()) + "]: " + Utils.getEntityName(entity) + " (UUID: " + entity.getUniqueId()
              + ") was" + (((LivingEntity) entity).getHealth() - damage <= 0 ? " killed " : " damaged ") + "by "
@@ -232,10 +232,10 @@ public final class PvPLoggerListener implements Listener {
 
     if (entity instanceof LivingEntity) {
       entityObj.addProperty("health", (event.getEntity() == entity
-                                       ? ((LivingEntity) entity).getHealth() - event.getDamage()
+                                       ? ((LivingEntity) entity).getHealth() - event.getFinalDamage()
                                        : ((LivingEntity) entity).getHealth()));
       entityObj.addProperty("dead", event.getEntity() == entity
-                                    && ((LivingEntity) entity).getHealth() - event.getDamage() <= 0);
+                                    && ((LivingEntity) entity).getHealth() - event.getFinalDamage() <= 0);
     }
 
     if (entity instanceof Player) {

@@ -74,7 +74,7 @@ public class Utils {
 
   public static String getWeapon(Entity entity) {
     if (entity instanceof LivingEntity) {
-      return ((LivingEntity) entity).getEquipment().getItemInHand().getType().getData().getName();
+      return ((LivingEntity) entity).getEquipment().getItemInHand().getData().getItemType().toString();
     } else if (entity instanceof Projectile) {
       String text = entity.toString();
 
@@ -82,7 +82,7 @@ public class Utils {
         text +=
             " from "
             + ((LivingEntity) ((Projectile) entity)
-                .getShooter()).getEquipment().getItemInHand().getType().getData().getName();
+                .getShooter()).getEquipment().getItemInHand().getData().getItemType().toString();
       }
 
       return text;
