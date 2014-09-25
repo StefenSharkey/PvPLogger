@@ -59,15 +59,11 @@ public class Utils {
   }
 
   public static String getEntityName(Entity entity) {
-    if (entity instanceof LivingEntity) {
-      if (entity instanceof Player) {
-        return ((Player) entity).getName();
-      }
-
-      return ((LivingEntity) entity).getCustomName();
+    if (entity instanceof Player) {
+      return ((Player) entity).getName();
     } else if (entity instanceof Projectile) {
       if (((Projectile) entity).getShooter() instanceof BlockProjectileSource) {
-        return ((BlockProjectileSource) ((Projectile) entity).getShooter()).getBlock().getType().name();
+        return ((BlockProjectileSource) ((Projectile) entity).getShooter()).getBlock().getType().getData().getName();
       }
 
       return ((Projectile) entity).getShooter().toString();
@@ -78,14 +74,15 @@ public class Utils {
 
   public static String getWeapon(Entity entity) {
     if (entity instanceof LivingEntity) {
-      return ((LivingEntity) entity).getEquipment().getItemInHand().toString();
+      return ((LivingEntity) entity).getEquipment().getItemInHand().getType().getData().getName();
     } else if (entity instanceof Projectile) {
       String text = entity.toString();
 
       if (((Projectile) entity).getShooter() instanceof LivingEntity) {
         text +=
-            " from " + ((LivingEntity) ((Projectile) entity).getShooter()).getEquipment()
-                .getItemInHand();
+            " from "
+            + ((LivingEntity) ((Projectile) entity)
+                .getShooter()).getEquipment().getItemInHand().getType().getData().getName();
       }
 
       return text;
