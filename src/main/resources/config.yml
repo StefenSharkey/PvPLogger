@@ -4,5 +4,11 @@ log-damage: true
 # Outputs extra information into the console. (Warning: creates large files very quickly)
 debug: false
 
-# Outputs in the following formats: json
-output-format: json
+# Outputs in the following formats: json, mysql
+output-format: json, mysql
+
+mysql:
+  username: root
+  password: password
+  host: localhost
+  port: 3306

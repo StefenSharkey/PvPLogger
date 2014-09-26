@@ -17,6 +17,8 @@
 
 package com.stefensharkey.pvplogger.configuration;
 
+import com.stefensharkey.pvplogger.storage.MySQLDatabase;
+
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -25,6 +27,7 @@ public class Configuration {
 
   private boolean debugMode;
 
+  private MySQLDatabase mySQLDatabase;
   private Plugin plugin;
   private StorageType storageType;
 
@@ -43,11 +46,18 @@ public class Configuration {
       case "json":
         setStorageType(StorageType.JSON);
         break;
+      case "mysql":
+        setStorageType(StorageType.MYSQL);
+        break;
       default:
         plugin.getConfig().set("output-format", "json");
         setStorageType(StorageType.JSON);
         break;
     }
+  }
+
+  public MySQLDatabase getMySQLDatabase() {
+    return mySQLDatabase;
   }
 
   public StorageType getStorageType() {
